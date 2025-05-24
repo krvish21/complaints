@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { ComplaintForm } from './components/ComplaintForm/ComplaintForm';
 import { ComplaintFeed } from './components/ComplaintFeed/ComplaintFeed';
 import './App.css'
-import { insertComplaint } from '../api/submit-compaint';
 
 const mockComplaints = [
   {
@@ -37,9 +36,18 @@ const mockComplaints = [
 const App = () => {
   const [complaints, setComplaints] = useState(mockComplaints);
 
-  const addComplaint = async (newComplaint) => {
+  const addComplaint = (newComplaint) => {
+    console.log("clicked")
     setComplaints([newComplaint, ...complaints]);
-    await insertComplaint(complaints);
+    fetch('./api/submit-complaint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newComplaint),
+    })
+      .then((res) => res.json())
+      .then((data) => console.log('Server response:', data))
+      .catch((err) => console.error('API error:', err));
+
   };
 
   const updateReply = (id, reply) => {
