@@ -17,7 +17,7 @@ const App = () => {
         if (!res.ok) throw new Error(data.error || 'Failed to fetch')
         setComplaints(data)
       } catch (error) {
-        //console.error(error)
+        console.error(error)
       } 
     }
 
