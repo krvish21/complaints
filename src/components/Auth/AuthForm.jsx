@@ -25,7 +25,7 @@ export const AuthForm = () => {
         if (error) throw error;
       }
     } catch (error) {
-      console.error('Auth error:', error);
+      alert('Auth error:', error);
       setError(error.message || 'An error occurred during authentication');
     } finally {
       setLoading(false);
