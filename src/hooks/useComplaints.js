@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchComplaints, submitComplaint } from '../services/api';
+import { fetchComplaints, submitComplaint } from '../services/api.js';
 
 export const useComplaints = () => {
   const [complaints, setComplaints] = useState([]);
