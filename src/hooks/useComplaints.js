@@ -8,35 +8,46 @@ export const useComplaints = () => {
 
   const loadComplaints = async () => {
     try {
-      const { data, error } = await supabase
+      // First, get the complaints
+      const { data: complaintsData, error: complaintsError } = await supabase
         .from('complaints')
-        .select(`
-          *,
-          user:user_id (
-            id,
-            email
-          ),
-          replies (
-            id,
-            content,
-            created_at,
-            user:user_id (
-              id,
-              email
-            )
-          ),
-          reactions (
-            reaction,
-            user:user_id (
-              id,
-              email
-            )
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setComplaints(data || []);
+      if (complaintsError) throw complaintsError;
+
+      // For each complaint, get the user info
+      const complaintsWithUsers = await Promise.all(
+        complaintsData.map(async (complaint) => {
+          // Get user info
+          const { data: userData } = await supabase
+            .from('users')
+            .select('id, email')
+            .eq('id', complaint.user_id)
+            .single();
+
+          // Get replies
+          const { data: repliesData } = await supabase
+            .from('replies')
+            .select('id, content, created_at, user_id')
+            .eq('complaint_id', complaint.id);
+
+          // Get reactions
+          const { data: reactionsData } = await supabase
+            .from('reactions')
+            .select('reaction, user_id')
+            .eq('complaint_id', complaint.id);
+
+          return {
+            ...complaint,
+            user: userData || { id: complaint.user_id, email: 'Unknown' },
+            replies: repliesData || [],
+            reactions: reactionsData || []
+          };
+        })
+      );
+
+      setComplaints(complaintsWithUsers || []);
     } catch (error) {
       console.error('Error loading complaints:', error);
     }
@@ -64,13 +75,7 @@ export const useComplaints = () => {
           ...newComplaint,
           user_id: user.id
         }])
-        .select(`
-          *,
-          user:user_id (
-            id,
-            email
-          )
-        `)
+        .select('*')
         .single();
 
       if (error) throw error;
