@@ -24,16 +24,58 @@ const CategoryBadge = ({ category }) => (
   </span>
 );
 
-export const ComplaintCard = ({ complaint, onReply, onReact }) => {
-  const [reply, setReply] = useState(complaint.reply || '');
+const UserBadge = ({ email, isAuthor }) => (
+  <span className={`inline-flex items-center gap-1 text-xs ${isAuthor ? 'text-blue-600' : 'text-gray-500'}`}>
+    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+    </svg>
+    {email}
+  </span>
+);
+
+const Reply = ({ reply, currentUser }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    className="pl-4 border-l-2 border-gray-200 mb-3"
+  >
+    <div className="flex items-center gap-2 mb-1">
+      <UserBadge email={reply.user.email} isAuthor={reply.user.id === currentUser?.id} />
+      <span className="text-xs text-gray-400">
+        {format(new Date(reply.created_at), 'MMM d, yyyy • h:mm a')}
+      </span>
+    </div>
+    <p className="text-sm text-gray-700">{reply.content}</p>
+  </motion.div>
+);
+
+export const ComplaintCard = ({ complaint, onReply, onReact, onDelete, onEdit, currentUser }) => {
   const [isReplying, setIsReplying] = useState(false);
-  const [reaction, setReaction] = useState(complaint.reaction);
+  const [isEditing, setIsEditing] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
+  const [editedTitle, setEditedTitle] = useState(complaint.title);
+  const [editedDescription, setEditedDescription] = useState(complaint.description);
+
+  const isAuthor = complaint.user.id === currentUser?.id;
+  const userReaction = complaint.reactions?.find(r => r.user.id === currentUser?.id)?.reaction;
 
   const handleSubmitReply = (e) => {
     e.preventDefault();
-    if (reply.trim()) {
-      onReply(complaint.id, reply);
+    if (replyContent.trim()) {
+      onReply(complaint.id, replyContent);
+      setReplyContent('');
       setIsReplying(false);
+    }
+  };
+
+  const handleSubmitEdit = (e) => {
+    e.preventDefault();
+    if (editedTitle.trim() && editedDescription.trim()) {
+      onEdit(complaint.id, {
+        title: editedTitle,
+        description: editedDescription
+      });
+      setIsEditing(false);
     }
   };
 
@@ -46,37 +88,95 @@ export const ComplaintCard = ({ complaint, onReply, onReact }) => {
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-1 flex items-center gap-2">
-            {complaint.mood} {complaint.title}
-          </h3>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <time dateTime={complaint.created_at}>
+        <div className="flex-1">
+          {isEditing ? (
+            <input
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+              placeholder="Title"
+            />
+          ) : (
+            <h3 className="text-lg font-semibold text-gray-900 mb-1 flex items-center gap-2">
+              {complaint.mood} {complaint.title}
+            </h3>
+          )}
+          <div className="flex items-center gap-3 flex-wrap">
+            <UserBadge email={complaint.user.email} isAuthor={isAuthor} />
+            <span className="text-xs text-gray-400">
               {format(new Date(complaint.created_at), 'MMM d, yyyy • h:mm a')}
-            </time>
+            </span>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-start gap-2">
           {complaint.category && <CategoryBadge category={complaint.category} />}
           {complaint.severity && <SeverityBadge severity={complaint.severity} />}
+          {isAuthor && !isEditing && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-gray-400 hover:text-blue-500"
+                title="Edit"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => onDelete(complaint.id)}
+                className="text-gray-400 hover:text-red-500"
+                title="Delete"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Content */}
       <div className="mb-4">
-        <p className="text-gray-700 leading-relaxed">{complaint.description}</p>
+        {isEditing ? (
+          <textarea
+            value={editedDescription}
+            onChange={(e) => setEditedDescription(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={3}
+            placeholder="Description"
+          />
+        ) : (
+          <p className="text-gray-700 leading-relaxed">{complaint.description}</p>
+        )}
       </div>
+
+      {/* Edit Actions */}
+      {isEditing && (
+        <div className="flex justify-end gap-2 mb-4">
+          <button
+            onClick={() => setIsEditing(false)}
+            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmitEdit}
+            className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Save Changes
+          </button>
+        </div>
+      )}
 
       {/* Reactions */}
       <div className="flex items-center gap-4 mb-4 pt-4 border-t border-gray-100">
         <div className="relative">
           <select
             className="appearance-none bg-gray-50 hover:bg-gray-100 transition-colors rounded-full px-4 py-2 pr-8 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={reaction || ''}
-            onChange={(e) => {
-              setReaction(e.target.value);
-              onReact(complaint.id, e.target.value);
-            }}
+            value={userReaction || ''}
+            onChange={(e) => onReact(complaint.id, e.target.value)}
           >
             <option value="">Add reaction...</option>
             {moods.map((m) => (
@@ -89,6 +189,17 @@ export const ComplaintCard = ({ complaint, onReply, onReact }) => {
             </svg>
           </div>
         </div>
+        <div className="flex gap-1">
+          {complaint.reactions?.map((r, index) => (
+            <span
+              key={index}
+              title={r.user.email}
+              className="text-lg"
+            >
+              {r.reaction}
+            </span>
+          ))}
+        </div>
         <button
           onClick={() => setIsReplying(!isReplying)}
           className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2"
@@ -100,52 +211,47 @@ export const ComplaintCard = ({ complaint, onReply, onReact }) => {
         </button>
       </div>
 
-      {/* Reply Form */}
-      <AnimatePresence>
-        {isReplying && (
-          <motion.form
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            onSubmit={handleSubmitReply}
-            className="overflow-hidden"
-          >
-            <textarea
-              value={reply}
-              onChange={(e) => setReply(e.target.value)}
-              placeholder="Write a reply..."
-              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              rows="3"
-            />
-            <div className="flex justify-end gap-2 mt-2">
-              <button
-                type="button"
-                onClick={() => setIsReplying(false)}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Submit Reply
-              </button>
-            </div>
-          </motion.form>
-        )}
-      </AnimatePresence>
+      {/* Replies */}
+      <div className="space-y-4">
+        {complaint.replies?.map((reply) => (
+          <Reply key={reply.id} reply={reply} currentUser={currentUser} />
+        ))}
 
-      {/* Existing Reply */}
-      {complaint.reply && !isReplying && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-4 pl-4 border-l-2 border-gray-200"
-        >
-          <p className="text-sm text-gray-700">{complaint.reply}</p>
-        </motion.div>
-      )}
+        <AnimatePresence>
+          {isReplying && (
+            <motion.form
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              onSubmit={handleSubmitReply}
+              className="overflow-hidden"
+            >
+              <textarea
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                placeholder="Write a reply..."
+                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows="3"
+              />
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsReplying(false)}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Submit Reply
+                </button>
+              </div>
+            </motion.form>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 };

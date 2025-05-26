@@ -1,4 +1,4 @@
-import { supabase } from '../src/lib/supabase.js';
+import { supabase } from '../src/lib/supabase';
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -12,14 +12,20 @@ export default async function handler(req, res) {
             .select('*')
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase error:', error);
+            return res.status(400).json({ 
+                message: 'Failed to fetch complaints', 
+                error: error.message,
+                details: error.details
+            });
+        }
         
-        console.log('response:: ', data);
-        return res.status(200).json(data);
+        return res.status(200).json(data || []);
     } catch (error) {
         console.error('API error:', error);
         return res.status(500).json({ 
-            message: 'Failed to fetch complaints', 
+            message: 'Internal server error', 
             error: error.message 
         });
     }
