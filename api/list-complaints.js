@@ -1,4 +1,4 @@
-import { supabase } from '../api/client';
+import { supabase } from './client.js';
 
 export default async function handler(req, res) {
     try {
@@ -13,4 +13,4 @@ export default async function handler(req, res) {
         console.error('API error:', error);
         return res.status(500).json({ message: 'Internal Server Error' });
     }
-}
+}   
