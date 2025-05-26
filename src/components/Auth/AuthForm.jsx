@@ -18,15 +18,23 @@ export const AuthForm = () => {
 
     try {
       if (isSignUp) {
-        await signUp(email, password);
+        const { error } = await signUp(email, password);
+        if (error) throw error;
       } else {
-        await signIn(email, password);
+        const { error } = await signIn(email, password);
+        if (error) throw error;
       }
     } catch (error) {
-      setError(error.message);
+      console.error('Auth error:', error);
+      setError(error.message || 'An error occurred during authentication');
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleMode = () => {
+    setIsSignUp(!isSignUp);
+    setError('');
   };
 
   return (
@@ -57,6 +65,7 @@ export const AuthForm = () => {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
+            disabled={loading}
           />
         </div>
 
@@ -71,14 +80,16 @@ export const AuthForm = () => {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
+            disabled={loading}
+            minLength={6}
           />
         </div>
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !email || !password}
           className={`w-full py-2 px-4 rounded-lg text-white font-medium ${
-            loading
+            loading || !email || !password
               ? 'bg-blue-400 cursor-not-allowed'
               : 'bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
           }`}
@@ -89,8 +100,9 @@ export const AuthForm = () => {
 
       <div className="mt-4 text-center">
         <button
-          onClick={() => setIsSignUp(!isSignUp)}
-          className="text-sm text-blue-600 hover:text-blue-700"
+          onClick={toggleMode}
+          disabled={loading}
+          className={`text-sm text-blue-600 hover:text-blue-700 ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
         >
           {isSignUp
             ? 'Already have an account? Sign in'
