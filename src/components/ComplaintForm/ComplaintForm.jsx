@@ -22,7 +22,7 @@ export const ComplaintForm = ({ onSubmit }) => {
     if (!title || !description) return;
 
     onSubmit({
-      id: generateId(),
+      //id: generateId(),
       title,
       description,
       mood,
