@@ -15,10 +15,12 @@ export const AuthProvider = ({ children }) => {
     // Check active sessions and sets the user
     const getInitialSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
         setUser(session?.user ?? null);
       } catch (error) {
         console.error('Error getting session:', error);
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -27,11 +29,13 @@ export const AuthProvider = ({ children }) => {
     getInitialSession();
 
     // Listen for changes on auth state (logged in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email, password) => {
@@ -43,6 +47,7 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
       return data;
     } catch (error) {
+      console.error('Error in signUp:', error);
       throw error;
     }
   };
@@ -56,6 +61,7 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
       return data;
     } catch (error) {
+      console.error('Error in signIn:', error);
       throw error;
     }
   };
@@ -64,7 +70,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      setUser(null);
     } catch (error) {
+      console.error('Error in signOut:', error);
       throw error;
     }
   };
