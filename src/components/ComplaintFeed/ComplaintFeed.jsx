@@ -6,26 +6,31 @@ const NoComplaints = () => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className="text-center py-12 px-4 bg-white rounded-lg border border-gray-100 shadow-sm"
+    className="text-center py-12 px-4 bg-pink-50 rounded-2xl border border-pink-100 shadow-lg"
   >
-    <div className="text-4xl mb-4">🤔</div>
-    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Complaints Yet</h3>
-    <p className="text-gray-500">Be the first one to share what's on your mind!</p>
+    <div className="text-4xl mb-4">💝</div>
+    <h3 className="text-xl font-bold text-pink-600 mb-2">No Love Notes Yet</h3>
+    <p className="text-pink-400">Be the first one to share your heart's whispers!</p>
   </motion.div>
 );
 
 const FeedHeader = ({ total }) => (
-  <div className="flex items-center justify-between mb-6">
+  <motion.div 
+    className="flex items-center justify-between mb-8"
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+  >
     <div>
-      <h2 className="text-xl font-semibold text-gray-900">Recent Complaints</h2>
-      <p className="text-sm text-gray-500 mt-1">
-        {total} {total === 1 ? 'complaint' : 'complaints'} shared
+      <h2 className="text-2xl font-bold text-pink-600">Love Stories</h2>
+      <p className="text-sm text-pink-400 mt-1">
+        {total} {total === 1 ? 'story' : 'stories'} shared with love
       </p>
     </div>
-  </div>
+    <div className="text-3xl">💌</div>
+  </motion.div>
 );
 
-export const ComplaintFeed = ({ complaints = [], onReply, onReact }) => {
+export const ComplaintFeed = ({ complaints = [], onReply, onReact, currentUser }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -40,7 +45,7 @@ export const ComplaintFeed = ({ complaints = [], onReply, onReact }) => {
     <div className="space-y-6">
       <FeedHeader total={complaints.length} />
       
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {complaints.length === 0 ? (
           <NoComplaints />
         ) : (
@@ -48,7 +53,7 @@ export const ComplaintFeed = ({ complaints = [], onReply, onReact }) => {
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="space-y-4"
+            className="space-y-6"
           >
             {complaints.map((complaint, index) => (
               <motion.div
@@ -65,6 +70,7 @@ export const ComplaintFeed = ({ complaints = [], onReply, onReact }) => {
                   complaint={complaint}
                   onReply={onReply}
                   onReact={onReact}
+                  currentUser={currentUser}
                 />
               </motion.div>
             ))}

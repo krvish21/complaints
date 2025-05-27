@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { moods } from '../ComplaintCard/ComplaintCard';
 
-const generateId = () => {
-  return Math.random().toString(36).substring(2, 9);
-};
-
-const categories = ['General', 'Personal', 'Work', 'Other'];
-const severityLevels = ['low', 'medium', 'high'];
+const moods = ['😊', '😢', '😡', '🥺', '💔', '🫂', '🥰', '😤'];
+const categories = ['Sweet Nothings', 'Little Fights', 'Big Arguments', 'Missing You', 'Happy Moments'];
+const severityLevels = [
+  { value: 'low', label: 'Just Venting 💭', color: 'bg-pink-100 text-pink-700' },
+  { value: 'medium', label: 'Need Attention ❤️', color: 'bg-pink-200 text-pink-800' },
+  { value: 'high', label: 'Serious Talk 💘', color: 'bg-pink-300 text-pink-900' }
+];
 
 export const ComplaintForm = ({ onSubmit }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [mood, setMood] = useState(moods[0]);
-  const [category, setCategory] = useState('General');
+  const [category, setCategory] = useState(categories[0]);
   const [severity, setSeverity] = useState('low');
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -22,41 +22,40 @@ export const ComplaintForm = ({ onSubmit }) => {
     if (!title || !description) return;
 
     onSubmit({
-      //id: generateId(),
       title,
       description,
       mood,
       category,
       severity,
-      created_at: new Date().toISOString(),
-      reply: '',
-      reaction: ''
+      created_at: new Date().toISOString()
     });
 
     setTitle('');
     setDescription('');
     setMood(moods[0]);
-    setCategory('General');
+    setCategory(categories[0]);
     setSeverity('low');
     setIsExpanded(false);
   };
 
   return (
     <motion.div
-      className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6"
+      className="bg-pink-50 rounded-2xl shadow-lg border border-pink-100 p-6 mb-8"
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Submit a Complaint 💌</h2>
-          <p className="text-sm text-gray-500 mt-1">Share what's on your mind</p>
-        </div>
-        <button
+        <motion.div whileHover={{ scale: 1.02 }}>
+          <h2 className="text-2xl font-bold text-pink-600">Share Your Heart 💌</h2>
+          <p className="text-sm text-pink-400 mt-1">Let it all out, we're here to listen</p>
+        </motion.div>
+        <motion.button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-gray-400 hover:text-gray-600"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="text-pink-400 hover:text-pink-600 transition-colors"
         >
           <svg
             className={`w-6 h-6 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -66,61 +65,49 @@ export const ComplaintForm = ({ onSubmit }) => {
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
           </svg>
-        </button>
+        </motion.button>
       </div>
 
       <AnimatePresence>
         {isExpanded && (
           <motion.form
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
             onSubmit={handleSubmit}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="space-y-4 overflow-hidden"
+            className="space-y-6 overflow-hidden"
           >
-            {/* Title Input */}
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                Title
-              </label>
-              <input
-                id="title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="What's the issue?"
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            {/* Description Input */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Tell me more about it..."
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                required
-              />
-            </div>
-
-            {/* Category and Severity */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
+                <label className="block text-sm font-medium text-pink-700 mb-2">
+                  How are you feeling? 
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {moods.map((m) => (
+                    <motion.button
+                      key={m}
+                      type="button"
+                      onClick={() => setMood(m)}
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.9 }}
+                      className={`text-2xl p-2 rounded-full ${
+                        mood === m ? 'bg-pink-100 shadow-md' : 'hover:bg-pink-50'
+                      }`}
+                    >
+                      {m}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-pink-700 mb-2">
+                  Category of Love
                 </label>
                 <select
-                  id="category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+                  className="w-full p-3 border-2 border-pink-200 rounded-xl focus:outline-none focus:border-pink-400 bg-white text-pink-700"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
@@ -129,60 +116,76 @@ export const ComplaintForm = ({ onSubmit }) => {
                   ))}
                 </select>
               </div>
+
               <div>
-                <label htmlFor="severity" className="block text-sm font-medium text-gray-700 mb-1">
-                  Severity
+                <label className="block text-sm font-medium text-pink-700 mb-2">
+                  How Important?
                 </label>
                 <select
-                  id="severity"
                   value={severity}
                   onChange={(e) => setSeverity(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+                  className="w-full p-3 border-2 border-pink-200 rounded-xl focus:outline-none focus:border-pink-400 bg-white text-pink-700"
                 >
                   {severityLevels.map((level) => (
-                    <option key={level} value={level}>
-                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    <option key={level.value} value={level.value}>
+                      {level.label}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* Mood Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                How are you feeling?
+              <label className="block text-sm font-medium text-pink-700 mb-2">
+                Title of Your Story
               </label>
-              <div className="flex gap-2">
-                {moods.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setMood(m)}
-                    className={`text-2xl p-2 rounded-lg transition-all ${
-                      mood === m
-                        ? 'bg-blue-50 ring-2 ring-blue-500'
-                        : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
+              <motion.input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                whileFocus={{ scale: 1.01 }}
+                className="w-full p-3 border-2 border-pink-200 rounded-xl focus:outline-none focus:border-pink-400 bg-white placeholder-pink-300"
+                placeholder="Give your feelings a title..."
+                required
+              />
             </div>
 
-            {/* Submit Button */}
-            <div className="flex justify-end pt-4">
-              <button
-                type="submit"
-                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                Submit Complaint
-              </button>
+            <div>
+              <label className="block text-sm font-medium text-pink-700 mb-2">
+                Pour Your Heart Out
+              </label>
+              <motion.textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                whileFocus={{ scale: 1.01 }}
+                className="w-full p-3 border-2 border-pink-200 rounded-xl focus:outline-none focus:border-pink-400 bg-white placeholder-pink-300 min-h-[120px] resize-y"
+                placeholder="Tell us what's on your mind..."
+                required
+              />
             </div>
+
+            <motion.button
+              type="submit"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3 px-6 bg-pink-500 hover:bg-pink-600 text-white font-medium rounded-xl shadow-lg shadow-pink-200 text-lg"
+            >
+              Share with Love 💝
+            </motion.button>
           </motion.form>
         )}
       </AnimatePresence>
+
+      {!isExpanded && (
+        <motion.button
+          onClick={() => setIsExpanded(true)}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full py-3 px-6 bg-pink-500 hover:bg-pink-600 text-white font-medium rounded-xl shadow-lg shadow-pink-200 text-lg flex items-center justify-center gap-2"
+        >
+          <span>Share Something {mood}</span>
+        </motion.button>
+      )}
     </motion.div>
   );
 };
