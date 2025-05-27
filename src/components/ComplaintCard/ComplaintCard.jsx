@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 
-export const moods = ['😊', '😢', '😡', '🥺', '💔', '🫂', '🥰', '😤'];
+export const moods = ['😊', '😢', '😡', '🥺', '💔', '😤', '🙄', '😒'];
 
 const SeverityBadge = ({ severity }) => {
   const colors = {
@@ -12,14 +12,14 @@ const SeverityBadge = ({ severity }) => {
   };
 
   const labels = {
-    low: 'Just Venting 💭',
-    medium: 'Need Attention ❤️',
-    high: 'Serious Talk 💘'
+    low: 'Minor Issue 💭',
+    medium: 'Need to Talk 💌',
+    high: 'Serious Problem ❗'
   };
 
   return (
     <span className={`px-3 py-1 rounded-full text-sm font-medium ${colors[severity] || colors.low}`}>
-      {labels[severity] || 'Just Venting'}
+      {labels[severity] || 'Minor Issue'}
     </span>
   );
 };
@@ -109,7 +109,7 @@ export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
             value={complaint.userReaction || ''}
             onChange={(e) => onReact(complaint.id, e.target.value)}
           >
-            <option value="">React with love...</option>
+            <option value="">React to this...</option>
             {moods.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
@@ -142,7 +142,7 @@ export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
           </svg>
-          Reply with Love
+          Reply
         </motion.button>
       </div>
 
@@ -164,7 +164,7 @@ export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
               <motion.textarea
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Share your thoughts with love..."
+                placeholder="Write your response..."
                 className="w-full p-3 border-2 border-pink-200 rounded-xl focus:outline-none focus:border-pink-400 bg-white placeholder-pink-300 min-h-[100px] resize-y mb-3"
                 whileFocus={{ scale: 1.01 }}
               />
@@ -184,7 +184,7 @@ export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
                   whileTap={{ scale: 0.95 }}
                   className="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-xl text-sm shadow-md shadow-pink-200"
                 >
-                  Send Love 💌
+                  Send Response
                 </motion.button>
               </div>
             </motion.form>

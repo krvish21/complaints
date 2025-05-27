@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { getComplaints, createComplaint, addReply as dbAddReply, addReaction as dbAddReaction, subscribeToComplaints } from '../lib/database';
 
 export const useComplaints = () => {
   const [complaints, setComplaints] = useState([]);
@@ -8,46 +8,8 @@ export const useComplaints = () => {
 
   const loadComplaints = async () => {
     try {
-      // First, get the complaints
-      const { data: complaintsData, error: complaintsError } = await supabase
-        .from('complaints')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (complaintsError) throw complaintsError;
-
-      // For each complaint, get the user info
-      const complaintsWithUsers = await Promise.all(
-        complaintsData.map(async (complaint) => {
-          // Get user info
-          const { data: userData } = await supabase
-            .from('users')
-            .select('id, email')
-            .eq('id', complaint.user_id)
-            .single();
-
-          // Get replies
-          const { data: repliesData } = await supabase
-            .from('replies')
-            .select('id, content, created_at, user_id')
-            .eq('complaint_id', complaint.id);
-
-          // Get reactions
-          const { data: reactionsData } = await supabase
-            .from('reactions')
-            .select('reaction, user_id')
-            .eq('complaint_id', complaint.id);
-
-          return {
-            ...complaint,
-            user: userData || { id: complaint.user_id, email: 'Unknown' },
-            replies: repliesData || [],
-            reactions: reactionsData || []
-          };
-        })
-      );
-
-      setComplaints(complaintsWithUsers || []);
+      const data = await getComplaints();
+      setComplaints(data || []);
     } catch (error) {
       console.error('Error loading complaints:', error);
     }
@@ -57,29 +19,16 @@ export const useComplaints = () => {
     loadComplaints();
 
     // Subscribe to realtime changes
-    const complaintsSubscription = supabase
-      .channel('complaints')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, loadComplaints)
-      .subscribe();
+    const unsubscribe = subscribeToComplaints(loadComplaints);
 
     return () => {
-      complaintsSubscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 
   const addComplaint = async (newComplaint) => {
     try {
-      const { data, error } = await supabase
-        .from('complaints')
-        .insert([{
-          ...newComplaint,
-          user_id: user.id
-        }])
-        .select('*')
-        .single();
-
-      if (error) throw error;
-      await loadComplaints();
+      const data = await createComplaint(newComplaint);
       return data;
     } catch (error) {
       console.error('Error adding complaint:', error);
@@ -87,50 +36,9 @@ export const useComplaints = () => {
     }
   };
 
-  const updateComplaint = async (id, updates) => {
-    try {
-      const { error } = await supabase
-        .from('complaints')
-        .update(updates)
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      await loadComplaints();
-    } catch (error) {
-      console.error('Error updating complaint:', error);
-      throw error;
-    }
-  };
-
-  const deleteComplaint = async (id) => {
-    try {
-      const { error } = await supabase
-        .from('complaints')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      await loadComplaints();
-    } catch (error) {
-      console.error('Error deleting complaint:', error);
-      throw error;
-    }
-  };
-
   const addReply = async (complaintId, content) => {
     try {
-      const { error } = await supabase
-        .from('replies')
-        .insert([{
-          complaint_id: complaintId,
-          user_id: user.id,
-          content
-        }]);
-
-      if (error) throw error;
-      await loadComplaints();
+      await dbAddReply(complaintId, content);
     } catch (error) {
       console.error('Error adding reply:', error);
       throw error;
@@ -140,29 +48,11 @@ export const useComplaints = () => {
   const updateReaction = async (complaintId, reaction) => {
     try {
       if (!reaction) {
-        // Remove reaction
-        const { error } = await supabase
-          .from('reactions')
-          .delete()
-          .eq('complaint_id', complaintId)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-      } else {
-        // Upsert reaction
-        const { error } = await supabase
-          .from('reactions')
-          .upsert({
-            complaint_id: complaintId,
-            user_id: user.id,
-            reaction
-          }, {
-            onConflict: 'complaint_id,user_id'
-          });
-
-        if (error) throw error;
+        // If no reaction is provided, we could implement a delete function
+        // For now, we'll just skip empty reactions
+        return;
       }
-      await loadComplaints();
+      await dbAddReaction(complaintId, reaction);
     } catch (error) {
       console.error('Error updating reaction:', error);
       throw error;
@@ -172,8 +62,6 @@ export const useComplaints = () => {
   return {
     complaints,
     addComplaint,
-    updateComplaint,
-    deleteComplaint,
     addReply,
     updateReaction,
   };

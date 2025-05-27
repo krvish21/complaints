@@ -6,11 +6,11 @@ const NoComplaints = () => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className="text-center py-12 px-4 bg-pink-50 rounded-2xl border border-pink-100 shadow-lg"
+    className="text-center py-12 px-4 bg-pink-50/50 rounded-2xl border border-pink-100 shadow-lg"
   >
-    <div className="text-4xl mb-4">💝</div>
-    <h3 className="text-xl font-bold text-pink-600 mb-2">No Love Notes Yet</h3>
-    <p className="text-pink-400">Be the first one to share your heart's whispers!</p>
+    <div className="text-4xl mb-4">💭</div>
+    <h3 className="text-xl font-bold text-pink-600 mb-2">No Posts Yet</h3>
+    <p className="text-pink-400">Be the first to share what's on your mind!</p>
   </motion.div>
 );
 
@@ -21,12 +21,12 @@ const FeedHeader = ({ total }) => (
     animate={{ opacity: 1, y: 0 }}
   >
     <div>
-      <h2 className="text-2xl font-bold text-pink-600">Love Stories</h2>
+      <h2 className="text-2xl font-bold text-pink-600">Relationship Feed</h2>
       <p className="text-sm text-pink-400 mt-1">
-        {total} {total === 1 ? 'story' : 'stories'} shared with love
+        {total} {total === 1 ? 'post' : 'posts'} shared
       </p>
     </div>
-    <div className="text-3xl">💌</div>
+    <div className="text-3xl">💭</div>
   </motion.div>
 );
 

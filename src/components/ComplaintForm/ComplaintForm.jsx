@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const moods = ['😊', '😢', '😡', '🥺', '💔', '🫂', '🥰', '😤'];
-const categories = ['Sweet Nothings', 'Little Fights', 'Big Arguments', 'Missing You', 'Happy Moments'];
+const moods = ['😊', '😢', '😡', '🥺', '💔', '😤', '🙄', '😒'];
+const categories = ['Communication', 'Date Night', 'Daily Life', 'Quality Time', 'Boundaries', 'Other'];
 const severityLevels = [
-  { value: 'low', label: 'Just Venting 💭', color: 'bg-pink-100 text-pink-700' },
-  { value: 'medium', label: 'Need Attention ❤️', color: 'bg-pink-200 text-pink-800' },
-  { value: 'high', label: 'Serious Talk 💘', color: 'bg-pink-300 text-pink-900' }
+  { value: 'low', label: 'Minor Issue 💭', color: 'bg-pink-100 text-pink-700' },
+  { value: 'medium', label: 'Need to Talk 💌', color: 'bg-pink-200 text-pink-800' },
+  { value: 'high', label: 'Serious Problem ❗', color: 'bg-pink-300 text-pink-900' }
 ];
 
 export const ComplaintForm = ({ onSubmit }) => {
@@ -40,15 +40,15 @@ export const ComplaintForm = ({ onSubmit }) => {
 
   return (
     <motion.div
-      className="bg-pink-50 rounded-2xl shadow-lg border border-pink-100 p-6 mb-8"
+      className="bg-pink-50/50 rounded-2xl shadow-lg border border-pink-100 p-6 mb-8"
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
       <div className="flex items-center justify-between mb-6">
         <motion.div whileHover={{ scale: 1.02 }}>
-          <h2 className="text-2xl font-bold text-pink-600">Share Your Heart 💌</h2>
-          <p className="text-sm text-pink-400 mt-1">Let it all out, we're here to listen</p>
+          <h2 className="text-2xl font-bold text-pink-600">Share What's Up 💭</h2>
+          <p className="text-sm text-pink-400 mt-1">Express yourself - good, bad, or in between</p>
         </motion.div>
         <motion.button
           type="button"
@@ -80,7 +80,7 @@ export const ComplaintForm = ({ onSubmit }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-pink-700 mb-2">
-                  How are you feeling? 
+                  How are you feeling?
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {moods.map((m) => (
@@ -102,7 +102,7 @@ export const ComplaintForm = ({ onSubmit }) => {
 
               <div>
                 <label className="block text-sm font-medium text-pink-700 mb-2">
-                  Category of Love
+                  Category
                 </label>
                 <select
                   value={category}
@@ -119,7 +119,7 @@ export const ComplaintForm = ({ onSubmit }) => {
 
               <div>
                 <label className="block text-sm font-medium text-pink-700 mb-2">
-                  How Important?
+                  How Serious Is It?
                 </label>
                 <select
                   value={severity}
@@ -137,7 +137,7 @@ export const ComplaintForm = ({ onSubmit }) => {
 
             <div>
               <label className="block text-sm font-medium text-pink-700 mb-2">
-                Title of Your Story
+                What's the Issue?
               </label>
               <motion.input
                 type="text"
@@ -145,21 +145,21 @@ export const ComplaintForm = ({ onSubmit }) => {
                 onChange={(e) => setTitle(e.target.value)}
                 whileFocus={{ scale: 1.01 }}
                 className="w-full p-3 border-2 border-pink-200 rounded-xl focus:outline-none focus:border-pink-400 bg-white placeholder-pink-300"
-                placeholder="Give your feelings a title..."
+                placeholder="Give your complaint a title..."
                 required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-pink-700 mb-2">
-                Pour Your Heart Out
+                Tell Us More
               </label>
               <motion.textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 whileFocus={{ scale: 1.01 }}
                 className="w-full p-3 border-2 border-pink-200 rounded-xl focus:outline-none focus:border-pink-400 bg-white placeholder-pink-300 min-h-[120px] resize-y"
-                placeholder="Tell us what's on your mind..."
+                placeholder="What happened? How do you feel about it?"
                 required
               />
             </div>
@@ -170,7 +170,7 @@ export const ComplaintForm = ({ onSubmit }) => {
               whileTap={{ scale: 0.98 }}
               className="w-full py-3 px-6 bg-pink-500 hover:bg-pink-600 text-white font-medium rounded-xl shadow-lg shadow-pink-200 text-lg"
             >
-              Share with Love 💝
+              Share Your Thoughts
             </motion.button>
           </motion.form>
         )}
@@ -183,7 +183,7 @@ export const ComplaintForm = ({ onSubmit }) => {
           whileTap={{ scale: 0.98 }}
           className="w-full py-3 px-6 bg-pink-500 hover:bg-pink-600 text-white font-medium rounded-xl shadow-lg shadow-pink-200 text-lg flex items-center justify-center gap-2"
         >
-          <span>Share Something {mood}</span>
+          <span>What's on your mind? {mood}</span>
         </motion.button>
       )}
     </motion.div>
