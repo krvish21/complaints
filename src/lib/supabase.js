@@ -14,14 +14,18 @@ const customFetch = (url, options = {}) => {
     headers: {
       ...options.headers,
       "apikey": supabaseKey,
-      "Authorization": `Bearer ${supabaseKey}`
+      "Authorization": `Bearer ${supabaseKey}`,
+      "Content-Type": "application/json",
+      "Prefer": "return=minimal"
     }
   });
 };
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
-  db: {
-    schema: 'public'
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false
   },
   global: {
     fetch: customFetch

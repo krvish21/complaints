@@ -31,7 +31,7 @@ export const authService = {
       const newUser = {
         id: Date.now().toString(),
         username,
-        password, // In a real app, this should be hashed
+        password,
         createdAt: new Date().toISOString()
       };
 
@@ -40,21 +40,24 @@ export const authService = {
       saveUsers(users);
 
       // Create user profile in Supabase
+      const profileData = {
+        user_id: newUser.id,
+        username: newUser.username,
+        display_name: username,
+        created_at: newUser.createdAt,
+        last_seen: new Date().toISOString()
+      };
+
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
-        .insert([
-          {
-            user_id: newUser.id,
-            username: newUser.username,
-            display_name: username,
-            created_at: newUser.createdAt,
-            last_seen: new Date().toISOString()
-          }
-        ])
+        .insert([profileData])
         .select()
         .single();
 
       if (profileError) {
+        // Rollback local storage if Supabase insert fails
+        const updatedUsers = getUsers().filter(u => u.id !== newUser.id);
+        saveUsers(updatedUsers);
         throw profileError;
       }
 
@@ -94,10 +97,14 @@ export const authService = {
       }
 
       // Update last seen
-      await supabase
+      const { error: updateError } = await supabase
         .from('user_profiles')
         .update({ last_seen: new Date().toISOString() })
         .eq('user_id', user.id);
+
+      if (updateError) {
+        console.error('Error updating last_seen:', updateError);
+      }
 
       // Store user in localStorage (without password)
       const { password: _, ...userWithoutPassword } = user;
@@ -119,10 +126,14 @@ export const authService = {
       const currentUser = authService.getCurrentUser();
       if (currentUser) {
         // Update last seen before signing out
-        await supabase
+        const { error: updateError } = await supabase
           .from('user_profiles')
           .update({ last_seen: new Date().toISOString() })
           .eq('user_id', currentUser.id);
+
+        if (updateError) {
+          console.error('Error updating last_seen:', updateError);
+        }
       }
       localStorage.removeItem(CURRENT_USER_KEY);
     } catch (error) {
