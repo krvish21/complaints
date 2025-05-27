@@ -33,17 +33,17 @@ export default async function handler(req, res) {
       }])
       .select(`
         *,
-        user:user_id (id, username),
-        replies (
+        profiles:user_id(id, username),
+        replies(
           id,
           content,
           created_at,
-          user:user_id (id, username)
+          profiles:user_id(id, username)
         ),
-        reactions (
+        reactions(
           id,
           reaction,
-          user:user_id (id, username)
+          profiles:user_id(id, username)
         )
       `)
       .single();

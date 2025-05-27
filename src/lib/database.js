@@ -6,17 +6,17 @@ export async function getComplaints() {
     .from('complaints')
     .select(`
       *,
-      user:user_id (id, username),
-      replies (
+      profiles:user_id(id, username),
+      replies(
         id,
         content,
         created_at,
-        user:user_id (id, username)
+        profiles:user_id(id, username)
       ),
-      reactions (
+      reactions(
         id,
         reaction,
-        user:user_id (id, username)
+        profiles:user_id(id, username)
       )
     `)
     .order('created_at', { ascending: false });
@@ -26,32 +26,53 @@ export async function getComplaints() {
 }
 
 export async function createComplaint(complaintData) {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
+
   const { data, error } = await supabase
     .from('complaints')
     .insert([{
       ...complaintData,
-      user_id: (await supabase.auth.getUser()).data.user.id
+      user_id: user.id
     }])
-    .select();
+    .select(`
+      *,
+      profiles:user_id(id, username),
+      replies(
+        id,
+        content,
+        created_at,
+        profiles:user_id(id, username)
+      ),
+      reactions(
+        id,
+        reaction,
+        profiles:user_id(id, username)
+      )
+    `)
+    .single();
 
   if (error) throw error;
-  return data[0];
+  return data;
 }
 
 // Replies
 export async function addReply(complaintId, content) {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
+
   const { data, error } = await supabase
     .from('replies')
     .insert([{
       complaint_id: complaintId,
       content,
-      user_id: (await supabase.auth.getUser()).data.user.id
+      user_id: user.id
     }])
     .select(`
       id,
       content,
       created_at,
-      user:user_id (id, username)
+      profiles:user_id(id, username)
     `);
 
   if (error) throw error;
@@ -60,13 +81,14 @@ export async function addReply(complaintId, content) {
 
 // Reactions
 export async function addReaction(complaintId, reaction) {
-  const userId = (await supabase.auth.getUser()).data.user.id;
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
 
   // First, try to update existing reaction
   const { data: existingReaction } = await supabase
     .from('reactions')
     .select('id')
-    .match({ complaint_id: complaintId, user_id: userId })
+    .match({ complaint_id: complaintId, user_id: user.id })
     .single();
 
   if (existingReaction) {
@@ -78,7 +100,7 @@ export async function addReaction(complaintId, reaction) {
       .select(`
         id,
         reaction,
-        user:user_id (id, username)
+        profiles:user_id(id, username)
       `);
 
     if (error) throw error;
@@ -90,12 +112,12 @@ export async function addReaction(complaintId, reaction) {
       .insert([{
         complaint_id: complaintId,
         reaction,
-        user_id: userId
+        user_id: user.id
       }])
       .select(`
         id,
         reaction,
-        user:user_id (id, username)
+        profiles:user_id(id, username)
       `);
 
     if (error) throw error;
