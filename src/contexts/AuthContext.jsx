@@ -44,10 +44,11 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
       });
+      console.log('inauth context', data);
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error in signUp:', error);
+      console.log('Error in signUp:', error);
       throw error;
     }
   };
