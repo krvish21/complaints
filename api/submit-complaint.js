@@ -31,21 +31,7 @@ export default async function handler(req, res) {
         created_at: complaint.created_at,
         user_id: complaint.user_id
       }])
-      .select(`
-        *,
-        profiles:user_id(id, username),
-        replies(
-          id,
-          content,
-          created_at,
-          profiles:user_id(id, username)
-        ),
-        reactions(
-          id,
-          reaction,
-          profiles:user_id(id, username)
-        )
-      `)
+      .select()
       .single();
 
     if (error) {

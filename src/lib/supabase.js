@@ -7,28 +7,12 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-// Create a custom fetch function that includes the service role key
-const customFetch = (url, options = {}) => {
-  return fetch(url, {
-    ...options,
-    headers: {
-      ...options.headers,
-      "apikey": supabaseKey,
-      "Authorization": `Bearer ${supabaseKey}`,
-      "Content-Type": "application/json",
-      "Prefer": "return=minimal"
-    }
-  });
-};
-
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storage: window.localStorage
-  },
-  global: {
-    fetch: customFetch
+    storage: window.localStorage,
+    storageKey: 'grievance-auth'
   }
-})
+});

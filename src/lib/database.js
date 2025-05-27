@@ -4,21 +4,7 @@ import { supabase } from './supabase';
 export async function getComplaints() {
   const { data, error } = await supabase
     .from('complaints')
-    .select(`
-      *,
-      profiles:user_id(id, username),
-      replies(
-        id,
-        content,
-        created_at,
-        profiles:user_id(id, username)
-      ),
-      reactions(
-        id,
-        reaction,
-        profiles:user_id(id, username)
-      )
-    `)
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -35,21 +21,7 @@ export async function createComplaint(complaintData) {
       ...complaintData,
       user_id: user.id
     }])
-    .select(`
-      *,
-      profiles:user_id(id, username),
-      replies(
-        id,
-        content,
-        created_at,
-        profiles:user_id(id, username)
-      ),
-      reactions(
-        id,
-        reaction,
-        profiles:user_id(id, username)
-      )
-    `)
+    .select()
     .single();
 
   if (error) throw error;
@@ -68,12 +40,7 @@ export async function addReply(complaintId, content) {
       content,
       user_id: user.id
     }])
-    .select(`
-      id,
-      content,
-      created_at,
-      profiles:user_id(id, username)
-    `);
+    .select();
 
   if (error) throw error;
   return data[0];
@@ -97,11 +64,7 @@ export async function addReaction(complaintId, reaction) {
       .from('reactions')
       .update({ reaction })
       .match({ id: existingReaction.id })
-      .select(`
-        id,
-        reaction,
-        profiles:user_id(id, username)
-      `);
+      .select();
 
     if (error) throw error;
     return data[0];
@@ -114,11 +77,7 @@ export async function addReaction(complaintId, reaction) {
         reaction,
         user_id: user.id
       }])
-      .select(`
-        id,
-        reaction,
-        profiles:user_id(id, username)
-      `);
+      .select();
 
     if (error) throw error;
     return data[0];
