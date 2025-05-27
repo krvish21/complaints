@@ -13,6 +13,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
     detectSessionInUrl: true,
     storage: window.localStorage,
-    storageKey: 'grievance-auth'
+    storageKey: 'grievance-auth',
+    flowType: 'pkce'
   }
 });

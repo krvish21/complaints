@@ -1,51 +1,30 @@
 import { supabase } from '../lib/supabase';
 
-// Local storage keys
-const USERS_KEY = 'app_users';
-const CURRENT_USER_KEY = 'current_user';
-
-// Initialize users array in localStorage if it doesn't exist
-if (!localStorage.getItem(USERS_KEY)) {
-  localStorage.setItem(USERS_KEY, JSON.stringify([]));
-}
-
-const getUsers = () => {
-  return JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-};
-
-const saveUsers = (users) => {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-};
-
 export const authService = {
-  signUp: async (username, password) => {
+  signUp: async (email, password, username) => {
     try {
-      // Create auth user in Supabase
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: `${username}@grievance.app`, // Using a placeholder email since we're using username auth
+      // Sign up the user
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email,
         password,
-        options: {
-          data: {
-            username // Store username in user metadata
-          }
-        }
       });
 
-      if (authError) throw authError;
+      if (signUpError) throw signUpError;
 
-      // Wait a bit for the auth user to be fully created
+      // Wait for the session to be established
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Create user profile
-      const { data: profile, error: profileError } = await supabase
+      const { error: profileError } = await supabase
         .from('user_profiles')
-        .insert([{
-          user_id: authData.user.id, // This is already a UUID
-          username,
-          created_at: new Date().toISOString(),
-          last_seen: new Date().toISOString()
-        }])
-        .select()
+        .insert([
+          {
+            user_id: authData.user.id,
+            username,
+            created_at: new Date().toISOString(),
+            last_seen: new Date().toISOString()
+          }
+        ])
         .single();
 
       if (profileError) {
@@ -53,86 +32,43 @@ export const authService = {
         throw profileError;
       }
 
-      return {
-        ...authData.user,
-        username,
-        profile
-      };
+      return authData;
     } catch (error) {
       console.error('Error in signUp:', error);
       throw error;
     }
   },
 
-  signIn: async (username, password) => {
-    try {
-      // Sign in with email (username@grievance.app) and password
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: `${username}@grievance.app`,
-        password
-      });
+  signIn: async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (authError) throw authError;
-
-      // Get user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', authData.user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Update last seen
-      await supabase
-        .from('user_profiles')
-        .update({ last_seen: new Date().toISOString() })
-        .eq('user_id', authData.user.id);
-
-      return {
-        ...authData.user,
-        username,
-        profile
-      };
-    } catch (error) {
-      console.error('Error in signIn:', error);
-      throw error;
-    }
+    if (error) throw error;
+    return data;
   },
 
   signOut: async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error in signOut:', error);
-      throw error;
-    }
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   },
 
   getCurrentUser: async () => {
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
-      
-      if (!user) return null;
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    return user;
+  },
 
-      // Get user profile
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+  getUserProfile: async (userId) => {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
 
-      return {
-        ...user,
-        username: user.user_metadata.username,
-        profile
-      };
-    } catch (error) {
-      console.error('Error getting current user:', error);
-      return null;
-    }
+    if (error) throw error;
+    return data;
   },
 
   updateProfile: async (userId, updates) => {
