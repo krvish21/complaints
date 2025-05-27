@@ -13,20 +13,17 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in
-    const loadUser = async () => {
-      const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
-      setLoading(false);
-    };
-
-    loadUser();
+    // Check active session
+    const { data: { session } } = supabase.auth.getSession();
+    if (session?.user) {
+      setUser(session.user);
+    }
+    setLoading(false);
 
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN') {
-        const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
+        setUser(session.user);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
       }
@@ -37,9 +34,10 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const signUp = async (username, password) => {
+  const signUp = async (email, password, username) => {
     try {
-      const user = await authService.signUp(username, password);
+      const { user, error } = await authService.signUp(email, password, username);
+      if (error) throw error;
       setUser(user);
       return { user };
     } catch (error) {
@@ -48,9 +46,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signIn = async (username, password) => {
+  const signIn = async (email, password) => {
     try {
-      const user = await authService.signIn(username, password);
+      const { user, error } = await authService.signIn(email, password);
+      if (error) throw error;
       setUser(user);
       return { user };
     } catch (error) {

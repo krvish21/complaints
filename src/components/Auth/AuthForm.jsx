@@ -6,6 +6,7 @@ const hearts = ['💝', '💖', '💗', '💓', '💕'];
 
 export const AuthForm = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,10 +22,10 @@ export const AuthForm = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(username, password);
+        const { error } = await signUp(email, password, username);
         if (error) throw error;
       } else {
-        const { error } = await signIn(username, password);
+        const { error } = await signIn(email, password);
         if (error) throw error;
       }
     } catch (error) {
@@ -80,21 +81,40 @@ export const AuthForm = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-pink-700 mb-2">
-              Choose your lovely username
+            <label htmlFor="email" className="block text-sm font-medium text-pink-700 mb-2">
+              Email Address
             </label>
             <motion.input
               whileFocus={{ scale: 1.01 }}
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 border-2 border-pink-200 rounded-xl focus:outline-none focus:border-pink-400 bg-white placeholder-pink-300"
               required
               disabled={loading}
-              placeholder="Enter username"
+              placeholder="Enter your email"
             />
           </div>
+
+          {isSignUp && (
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-pink-700 mb-2">
+                Choose your lovely username
+              </label>
+              <motion.input
+                whileFocus={{ scale: 1.01 }}
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-pink-200 rounded-xl focus:outline-none focus:border-pink-400 bg-white placeholder-pink-300"
+                required
+                disabled={loading}
+                placeholder="Enter username"
+              />
+            </div>
+          )}
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-pink-700 mb-2">
@@ -116,11 +136,11 @@ export const AuthForm = () => {
 
           <motion.button
             type="submit"
-            disabled={loading || !username || !password}
+            disabled={loading || !email || !password || (isSignUp && !username)}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className={`w-full py-3 px-6 rounded-xl text-white font-medium text-lg ${
-              loading || !username || !password
+              loading || !email || !password || (isSignUp && !username)
                 ? 'bg-pink-300 cursor-not-allowed'
                 : 'bg-pink-500 hover:bg-pink-600 shadow-lg shadow-pink-200'
             }`}
