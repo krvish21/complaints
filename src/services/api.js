@@ -1,6 +1,6 @@
 const API_ENDPOINTS = {
-  LIST_COMPLAINTS: './api/list-complaints',
-  SUBMIT_COMPLAINT: './api/submit-complaint',
+  LIST_COMPLAINTS: '/api/list-complaints',
+  SUBMIT_COMPLAINT: '/api/submit-complaint',
 };
 
 export const fetchComplaints = async () => {

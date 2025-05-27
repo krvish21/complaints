@@ -8,8 +8,16 @@ export default async function handler(req, res) {
   try {
     const complaint = req.body;
     
-    // Ensure created_at is set
+    // Get the current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) throw authError;
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Ensure created_at is set and add user_id
     complaint.created_at = new Date().toISOString();
+    complaint.user_id = user.id;
 
     // Insert the complaint into Supabase with explicit columns
     const { data, error } = await supabase
@@ -21,10 +29,23 @@ export default async function handler(req, res) {
         category: complaint.category,
         severity: complaint.severity,
         created_at: complaint.created_at,
-        reply: complaint.reply || null,
-        reaction: complaint.reaction || null
+        user_id: complaint.user_id
       }])
-      .select()
+      .select(`
+        *,
+        user:user_id (id, username),
+        replies (
+          id,
+          content,
+          created_at,
+          user:user_id (id, username)
+        ),
+        reactions (
+          id,
+          reaction,
+          user:user_id (id, username)
+        )
+      `)
       .single();
 
     if (error) {

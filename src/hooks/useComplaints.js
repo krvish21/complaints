@@ -29,6 +29,8 @@ export const useComplaints = () => {
   const addComplaint = async (newComplaint) => {
     try {
       const data = await createComplaint(newComplaint);
+      // Update local state immediately for better UX
+      setComplaints(prevComplaints => [data, ...prevComplaints]);
       return data;
     } catch (error) {
       console.error('Error adding complaint:', error);

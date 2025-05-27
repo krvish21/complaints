@@ -20,56 +20,44 @@ const saveUsers = (users) => {
 export const authService = {
   signUp: async (username, password) => {
     try {
-      const users = getUsers();
-      
-      // Check if username already exists
-      if (users.some(user => user.username === username)) {
-        throw new Error('Username already exists');
-      }
-
-      // Create new user
-      const newUser = {
-        id: Date.now().toString(),
-        username,
+      // Create auth user in Supabase
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: `${username}@grievance.app`, // Using a placeholder email since we're using username auth
         password,
-        createdAt: new Date().toISOString()
-      };
+        options: {
+          data: {
+            username // Store username in user metadata
+          }
+        }
+      });
 
-      // Save user locally
-      users.push(newUser);
-      saveUsers(users);
+      if (authError) throw authError;
 
-      // Create user profile in Supabase
-      const profileData = {
-        user_id: newUser.id,
-        username: newUser.username,
-        display_name: username,
-        created_at: newUser.createdAt,
-        last_seen: new Date().toISOString()
-      };
+      // Wait a bit for the auth user to be fully created
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
+      // Create user profile
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
-        .insert([profileData])
+        .insert([{
+          user_id: authData.user.id, // This is already a UUID
+          username,
+          created_at: new Date().toISOString(),
+          last_seen: new Date().toISOString()
+        }])
         .select()
         .single();
 
       if (profileError) {
-        // Rollback local storage if Supabase insert fails
-        const updatedUsers = getUsers().filter(u => u.id !== newUser.id);
-        saveUsers(updatedUsers);
+        console.error('Profile Error:', profileError);
         throw profileError;
       }
 
-      // Auto login after signup
-      const { password: _, ...userWithoutPassword } = newUser;
-      const userWithProfile = {
-        ...userWithoutPassword,
+      return {
+        ...authData.user,
+        username,
         profile
       };
-      
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithProfile));
-      return userWithProfile;
     } catch (error) {
       console.error('Error in signUp:', error);
       throw error;
@@ -78,43 +66,34 @@ export const authService = {
 
   signIn: async (username, password) => {
     try {
-      const users = getUsers();
-      const user = users.find(u => u.username === username && u.password === password);
+      // Sign in with email (username@grievance.app) and password
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: `${username}@grievance.app`,
+        password
+      });
 
-      if (!user) {
-        throw new Error('Invalid username or password');
-      }
+      if (authError) throw authError;
 
-      // Get user profile from Supabase
+      // Get user profile
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', authData.user.id)
         .single();
 
-      if (profileError) {
-        throw profileError;
-      }
+      if (profileError) throw profileError;
 
       // Update last seen
-      const { error: updateError } = await supabase
+      await supabase
         .from('user_profiles')
         .update({ last_seen: new Date().toISOString() })
-        .eq('user_id', user.id);
+        .eq('user_id', authData.user.id);
 
-      if (updateError) {
-        console.error('Error updating last_seen:', updateError);
-      }
-
-      // Store user in localStorage (without password)
-      const { password: _, ...userWithoutPassword } = user;
-      const userWithProfile = {
-        ...userWithoutPassword,
+      return {
+        ...authData.user,
+        username,
         profile
       };
-      
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithProfile));
-      return userWithProfile;
     } catch (error) {
       console.error('Error in signIn:', error);
       throw error;
@@ -123,28 +102,37 @@ export const authService = {
 
   signOut: async () => {
     try {
-      const currentUser = authService.getCurrentUser();
-      if (currentUser) {
-        // Update last seen before signing out
-        const { error: updateError } = await supabase
-          .from('user_profiles')
-          .update({ last_seen: new Date().toISOString() })
-          .eq('user_id', currentUser.id);
-
-        if (updateError) {
-          console.error('Error updating last_seen:', updateError);
-        }
-      }
-      localStorage.removeItem(CURRENT_USER_KEY);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     } catch (error) {
       console.error('Error in signOut:', error);
       throw error;
     }
   },
 
-  getCurrentUser: () => {
-    const userStr = localStorage.getItem(CURRENT_USER_KEY);
-    return userStr ? JSON.parse(userStr) : null;
+  getCurrentUser: async () => {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      
+      if (!user) return null;
+
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      return {
+        ...user,
+        username: user.user_metadata.username,
+        profile
+      };
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
   },
 
   updateProfile: async (userId, updates) => {
@@ -156,20 +144,7 @@ export const authService = {
         .select()
         .single();
 
-      if (error) {
-        throw error;
-      }
-
-      // Update local storage
-      const currentUser = authService.getCurrentUser();
-      if (currentUser) {
-        const updatedUser = {
-          ...currentUser,
-          profile
-        };
-        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
-      }
-
+      if (error) throw error;
       return profile;
     } catch (error) {
       console.error('Error updating profile:', error);
