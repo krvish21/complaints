@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 export const AuthForm = () => {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,10 +18,10 @@ export const AuthForm = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password);
+        const { error } = await signUp(username, password);
         if (error) throw error;
       } else {
-        const { error } = await signIn(email, password);
+        const { error } = await signIn(username, password);
         if (error) throw error;
       }
     } catch (error) {
@@ -55,14 +55,14 @@ export const AuthForm = () => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email Address
+          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+            Username
           </label>
           <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
             disabled={loading}
@@ -87,9 +87,9 @@ export const AuthForm = () => {
 
         <button
           type="submit"
-          disabled={loading || !email || !password}
+          disabled={loading || !username || !password}
           className={`w-full py-2 px-4 rounded-lg text-white font-medium ${
-            loading || !email || !password
+            loading || !username || !password
               ? 'bg-blue-400 cursor-not-allowed'
               : 'bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
           }`}
