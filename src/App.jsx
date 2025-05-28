@@ -2,53 +2,53 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ComplaintForm } from './components/ComplaintForm/ComplaintForm';
 import { ComplaintFeed } from './components/ComplaintFeed/ComplaintFeed';
-import { AuthForm } from './components/Auth/AuthForm';
 import { useComplaints } from './hooks/useComplaints';
-import { useAuth } from './contexts/AuthContext';
+import { useUser } from './contexts/UserContext';
 import './App.css';
 
-const Header = ({ user, onSignOut }) => (
-  <motion.header
-    initial={{ opacity: 0, y: -20 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="bg-white border-b border-gray-100 py-6 px-4 mb-8 sticky top-0 z-10 backdrop-blur-sm bg-white/80"
-  >
-    <div className="max-w-xl mx-auto flex items-center justify-between">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Grievance Box 📮</h1>
-        <p className="text-sm text-gray-500 mt-1">Share your thoughts and feelings</p>
-      </div>
-      {user && (
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">{user.email}</span>
-          <button
-            onClick={onSignOut}
-            className="text-sm text-red-600 hover:text-red-700"
-          >
-            Sign Out
-          </button>
-        </div>
-      )}
-    </div>
-  </motion.header>
-);
+const Header = () => {
+  const { user, setUser, USERS } = useUser();
 
-const EmailConfirmationMessage = () => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="max-w-xl mx-auto p-6 bg-yellow-50 rounded-2xl shadow-lg border border-yellow-100 text-center"
-  >
-    <h2 className="text-2xl font-bold text-yellow-800 mb-4">📧 Check Your Email</h2>
-    <p className="text-yellow-700 mb-4">
-      Please check your email and click the confirmation link to activate your account.
-      You won't be able to access the app until you confirm your email.
-    </p>
-    <p className="text-sm text-yellow-600">
-      Don't see the email? Check your spam folder or try signing up again.
-    </p>
-  </motion.div>
-);
+  return (
+    <motion.header
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white border-b border-gray-100 py-6 px-4 mb-8 sticky top-0 z-10 backdrop-blur-sm bg-white/80"
+    >
+      <div className="max-w-xl mx-auto">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Grievance Box 📮</h1>
+            <p className="text-sm text-gray-500 mt-1">Share your thoughts and feelings</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-6">
+          <label className="inline-flex items-center">
+            <input
+              type="radio"
+              className="form-radio text-pink-500 h-4 w-4"
+              checked={user.id === USERS.SABAA.id}
+              onChange={() => setUser('SABAA')}
+            />
+            <span className="ml-2 text-gray-700">Sabaa</span>
+          </label>
+          <label className="inline-flex items-center">
+            <input
+              type="radio"
+              className="form-radio text-pink-500 h-4 w-4"
+              checked={user.id === USERS.VISHU.id}
+              onChange={() => setUser('VISHU')}
+            />
+            <span className="ml-2 text-gray-700">Vishu</span>
+          </label>
+          <span className="text-sm text-gray-500">
+            Acting as: <span className="font-medium text-gray-700">{user.name}</span>
+          </span>
+        </div>
+      </div>
+    </motion.header>
+  );
+};
 
 const MainContent = ({ children }) => (
   <motion.main
@@ -62,36 +62,20 @@ const MainContent = ({ children }) => (
 );
 
 const App = () => {
-  const { user, signOut, emailConfirmationRequired } = useAuth();
+  const { user } = useUser();
   const { complaints, addComplaint, updateReply, updateReaction } = useComplaints();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header user={user} onSignOut={handleSignOut} />
+      <Header />
       <MainContent>
-        {emailConfirmationRequired ? (
-          <EmailConfirmationMessage />
-        ) : user ? (
-          <>
-            <ComplaintForm onSubmit={addComplaint} />
-            <ComplaintFeed 
-              complaints={complaints} 
-              onReply={updateReply} 
-              onReact={updateReaction}
-              currentUser={user}
-            />
-          </>
-        ) : (
-          <AuthForm />
-        )}
+        <ComplaintForm onSubmit={addComplaint} />
+        <ComplaintFeed 
+          complaints={complaints} 
+          onReply={updateReply} 
+          onReact={updateReaction}
+          currentUser={user}
+        />
       </MainContent>
       <footer className="text-center py-6 text-sm text-gray-500">
         <p>Made with ❤️ for expressing feelings</p>
