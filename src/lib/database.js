@@ -129,10 +129,7 @@ export async function addReaction(complaintId, reaction, userId) {
     // Update existing reaction
     const { data, error } = await supabase
       .from('reactions')
-      .update({ 
-        reaction,
-        updated_at: new Date().toISOString()
-      })
+      .update({ reaction })
       .eq('id', existingReaction.id)
       .select(`
         *,
@@ -158,9 +155,7 @@ export async function addReaction(complaintId, reaction, userId) {
       .insert([{
         complaint_id: complaintId,
         reaction,
-        user_id: userId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        user_id: userId
       }])
       .select(`
         *,
