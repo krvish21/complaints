@@ -10,6 +10,7 @@ export const AuthForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentHeart, setCurrentHeart] = useState(hearts[0]);
   
@@ -18,15 +19,22 @@ export const AuthForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setMessage('');
     setLoading(true);
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password, username);
-        if (error) throw error;
+        const { error, message } = await signUp(email, password, username);
+        if (error) {
+          setError(error.message || 'An error occurred during sign up');
+        } else if (message) {
+          setMessage(message);
+        }
       } else {
         const { error } = await signIn(email, password);
-        if (error) throw error;
+        if (error) {
+          setError(error.message || 'An error occurred during sign in');
+        }
       }
     } catch (error) {
       console.log('Auth error:', error);
@@ -75,6 +83,16 @@ export const AuthForm = () => {
               className="mb-6 p-4 bg-pink-100 border border-pink-200 text-pink-700 rounded-lg text-sm text-center"
             >
               {error}
+            </motion.div>
+          )}
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-6 p-4 bg-green-100 border border-green-200 text-green-700 rounded-lg text-sm text-center"
+            >
+              {message}
             </motion.div>
           )}
         </AnimatePresence>

@@ -7,14 +7,34 @@ export const authService = {
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            username // Store username in auth metadata as backup
+          }
+        }
       });
 
       if (signUpError) throw signUpError;
+      if (!authData?.user?.id) throw new Error('No user ID returned from signup');
 
       // Wait for the session to be established
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session Error:', sessionError);
+        throw sessionError;
+      }
 
-      // Create user profile
+      if (!session) {
+        // If no session, wait a bit and try again (email confirmation might be required)
+        console.log('No session available, user might need to confirm email');
+        return { 
+          user: authData.user,
+          message: 'Please check your email for confirmation link'
+        };
+      }
+
+      // Now that we have a session, create the profile
       const { error: profileError } = await supabase
         .from('user_profiles')
         .insert([
@@ -29,13 +49,20 @@ export const authService = {
 
       if (profileError) {
         console.error('Profile Error:', profileError);
-        throw profileError;
+        return {
+          user: authData.user,
+          error: profileError,
+          message: 'Account created but profile setup failed. Please contact support.'
+        };
       }
 
-      return authData;
+      return { 
+        user: authData.user,
+        message: 'Account created successfully'
+      };
     } catch (error) {
       console.error('Error in signUp:', error);
-      throw error;
+      return { error };
     }
   },
 
