@@ -1,34 +1,41 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ComplaintCard } from '../ComplaintCard/ComplaintCard';
+import { moodThemes } from '../../lib/themes';
 
-const NoComplaints = () => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="text-center py-12 px-4 bg-pink-50/50 rounded-2xl border border-pink-100 shadow-lg"
-  >
-    <div className="text-4xl mb-4">💭</div>
-    <h3 className="text-xl font-bold text-pink-600 mb-2">No Posts Yet</h3>
-    <p className="text-pink-400">Be the first to share what's on your mind!</p>
-  </motion.div>
-);
+const NoComplaints = () => {
+  const theme = moodThemes['😢'];
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className={`text-center py-12 px-4 ${theme.lightBg} rounded-2xl border ${theme.border} shadow-lg`}
+    >
+      <div className="text-4xl mb-4">💭</div>
+      <h3 className={`text-xl font-bold ${theme.accent} mb-2`}>No Posts Yet</h3>
+      <p className={`${theme.text}`}>Be the first to share what's on your mind!</p>
+    </motion.div>
+  );
+};
 
-const FeedHeader = ({ total }) => (
-  <motion.div 
-    className="flex items-center justify-between mb-8"
-    initial={{ opacity: 0, y: -20 }}
-    animate={{ opacity: 1, y: 0 }}
-  >
-    <div>
-      <h2 className="text-2xl font-bold text-pink-600">Relationship Feed</h2>
-      <p className="text-sm text-pink-400 mt-1">
-        {total} {total === 1 ? 'post' : 'posts'} shared
-      </p>
-    </div>
-    <div className="text-3xl">💭</div>
-  </motion.div>
-);
+const FeedHeader = ({ total }) => {
+  const theme = moodThemes['😊'];
+  return (
+    <motion.div 
+      className="flex items-center justify-between mb-8"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <div>
+        <h2 className={`text-2xl font-bold ${theme.accent}`}>Relationship Feed</h2>
+        <p className={`text-sm ${theme.text} mt-1`}>
+          {total} {total === 1 ? 'post' : 'posts'} shared
+        </p>
+      </div>
+      <div className="text-3xl">💭</div>
+    </motion.div>
+  );
+};
 
 export const ComplaintFeed = ({ complaints = [], onReply, onReact, currentUser }) => {
   const containerVariants = {

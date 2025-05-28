@@ -179,8 +179,8 @@ export async function addReaction(complaintId, reaction, userId) {
 
 // Real-time subscriptions
 export function subscribeToComplaints(callback) {
-  const complaintSubscription = supabase
-    .channel('complaints')
+  // Create a single channel for all changes
+  const channel = supabase.channel('db-changes')
     .on('postgres_changes', {
       event: '*',
       schema: 'public',
@@ -188,10 +188,6 @@ export function subscribeToComplaints(callback) {
     }, () => {
       getComplaints().then(callback);
     })
-    .subscribe();
-
-  const replySubscription = supabase
-    .channel('replies')
     .on('postgres_changes', {
       event: '*',
       schema: 'public',
@@ -199,10 +195,6 @@ export function subscribeToComplaints(callback) {
     }, () => {
       getComplaints().then(callback);
     })
-    .subscribe();
-
-  const reactionSubscription = supabase
-    .channel('reactions')
     .on('postgres_changes', {
       event: '*',
       schema: 'public',
@@ -214,8 +206,6 @@ export function subscribeToComplaints(callback) {
 
   // Return cleanup function
   return () => {
-    complaintSubscription.unsubscribe();
-    replySubscription.unsubscribe();
-    reactionSubscription.unsubscribe();
+    channel.unsubscribe();
   };
 } 
