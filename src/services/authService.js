@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase';
 export const authService = {
   signUp: async (email, password, username) => {
     try {
+      console.log('Starting signup process for:', email);
+      
       // Sign up the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
@@ -10,31 +12,17 @@ export const authService = {
         options: {
           data: {
             username // Store username in auth metadata as backup
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
+
+      console.log('Signup response:', { authData, signUpError });
 
       if (signUpError) throw signUpError;
       if (!authData?.user?.id) throw new Error('No user ID returned from signup');
 
-      // Wait for the session to be established
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error('Session Error:', sessionError);
-        throw sessionError;
-      }
-
-      if (!session) {
-        // If no session, wait a bit and try again (email confirmation might be required)
-        console.log('No session available, user might need to confirm email');
-        return { 
-          user: authData.user,
-          message: 'Please check your email for confirmation link'
-        };
-      }
-
-      // Now that we have a session, create the profile
+      // Create user profile
       const { error: profileError } = await supabase
         .from('user_profiles')
         .insert([
@@ -49,17 +37,22 @@ export const authService = {
 
       if (profileError) {
         console.error('Profile Error:', profileError);
+        // If profile creation fails, we should handle cleanup
+        // You might want to delete the auth user or implement a retry mechanism
+        throw profileError;
+      }
+
+      // Check if email confirmation is required
+      if (authData.user?.identities?.length === 0 || 
+          authData.user?.confirmed_at === null) {
+        console.log('Email confirmation required for:', email);
         return {
-          user: authData.user,
-          error: profileError,
-          message: 'Account created but profile setup failed. Please contact support.'
+          message: 'Please check your email to confirm your account before signing in.',
+          requiresEmailConfirmation: true
         };
       }
 
-      return { 
-        user: authData.user,
-        message: 'Account created successfully'
-      };
+      return { user: authData.user };
     } catch (error) {
       console.error('Error in signUp:', error);
       return { error };
