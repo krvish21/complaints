@@ -14,11 +14,15 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check active session
-    const { data: { session } } = supabase.auth.getSession();
-    if (session?.user) {
-      setUser(session.user);
-    }
-    setLoading(false);
+    const initSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+      }
+      setLoading(false);
+    };
+
+    initSession();
 
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
