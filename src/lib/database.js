@@ -6,17 +6,26 @@ export async function getComplaints() {
     .from('complaints')
     .select(`
       *,
-      user_profiles:user_id (username),
+      user:user_id (
+        id,
+        username
+      ),
       replies (
         id,
         content,
         created_at,
-        user_profiles:user_id (username)
+        user:user_id (
+          id,
+          username
+        )
       ),
       reactions (
         id,
         reaction,
-        user_id,
+        user:user_id (
+          id,
+          username
+        ),
         created_at
       )
     `)
@@ -32,7 +41,10 @@ export async function createComplaint(complaintData) {
     .insert([complaintData])
     .select(`
       *,
-      user_profiles:user_id (username)
+      user:user_id (
+        id,
+        username
+      )
     `)
     .single();
 
@@ -51,7 +63,10 @@ export async function addReply(complaintId, content, userId) {
     }])
     .select(`
       *,
-      user_profiles:user_id (username)
+      user:user_id (
+        id,
+        username
+      )
     `)
     .single();
 
