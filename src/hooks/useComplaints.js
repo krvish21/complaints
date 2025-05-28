@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useUser } from '../contexts/UserContext';
 import { getComplaints, createComplaint, addReply as dbAddReply, addReaction as dbAddReaction, subscribeToComplaints } from '../lib/database';
 
 export const useComplaints = () => {
   const [complaints, setComplaints] = useState([]);
-  const { user } = useAuth();
+  const { user } = useUser();
 
   const loadComplaints = async () => {
     try {
@@ -28,7 +28,10 @@ export const useComplaints = () => {
 
   const addComplaint = async (newComplaint) => {
     try {
-      const data = await createComplaint(newComplaint);
+      const data = await createComplaint({
+        ...newComplaint,
+        user_id: user.id
+      });
       // Update local state immediately for better UX
       setComplaints(prevComplaints => [data, ...prevComplaints]);
       return data;
@@ -40,7 +43,7 @@ export const useComplaints = () => {
 
   const addReply = async (complaintId, content) => {
     try {
-      await dbAddReply(complaintId, content);
+      await dbAddReply(complaintId, content, user.id);
     } catch (error) {
       console.error('Error adding reply:', error);
       throw error;
@@ -54,7 +57,7 @@ export const useComplaints = () => {
         // For now, we'll just skip empty reactions
         return;
       }
-      await dbAddReaction(complaintId, reaction);
+      await dbAddReaction(complaintId, reaction, user.id);
     } catch (error) {
       console.error('Error updating reaction:', error);
       throw error;
