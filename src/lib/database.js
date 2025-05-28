@@ -6,33 +6,56 @@ export async function getComplaints() {
     .from('complaints')
     .select(`
       *,
-      user:user_id (
-        id,
+      user_profiles!user_id (
+        user_id,
         username
       ),
       replies (
         id,
         content,
         created_at,
-        user:user_id (
-          id,
+        user_profiles!user_id (
+          user_id,
           username
         )
       ),
       reactions (
         id,
         reaction,
-        user:user_id (
-          id,
+        user_id,
+        created_at,
+        user_profiles!user_id (
+          user_id,
           username
-        ),
-        created_at
+        )
       )
     `)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data;
+  
+  // Transform the data to match the component's expected structure
+  return data?.map(complaint => ({
+    ...complaint,
+    user: {
+      id: complaint.user_profiles?.user_id,
+      username: complaint.user_profiles?.username
+    },
+    replies: complaint.replies?.map(reply => ({
+      ...reply,
+      user: {
+        id: reply.user_profiles?.user_id,
+        username: reply.user_profiles?.username
+      }
+    })),
+    reactions: complaint.reactions?.map(reaction => ({
+      ...reaction,
+      user: {
+        id: reaction.user_profiles?.user_id,
+        username: reaction.user_profiles?.username
+      }
+    }))
+  }));
 }
 
 export async function createComplaint(complaintData) {
@@ -41,15 +64,23 @@ export async function createComplaint(complaintData) {
     .insert([complaintData])
     .select(`
       *,
-      user:user_id (
-        id,
+      user_profiles!user_id (
+        user_id,
         username
       )
     `)
     .single();
 
   if (error) throw error;
-  return data;
+  
+  // Transform the data to match the component's expected structure
+  return {
+    ...data,
+    user: {
+      id: data.user_profiles?.user_id,
+      username: data.user_profiles?.username
+    }
+  };
 }
 
 // Replies
@@ -63,15 +94,23 @@ export async function addReply(complaintId, content, userId) {
     }])
     .select(`
       *,
-      user:user_id (
-        id,
+      user_profiles!user_id (
+        user_id,
         username
       )
     `)
     .single();
 
   if (error) throw error;
-  return data;
+  
+  // Transform the data to match the component's expected structure
+  return {
+    ...data,
+    user: {
+      id: data.user_profiles?.user_id,
+      username: data.user_profiles?.username
+    }
+  };
 }
 
 // Reactions
