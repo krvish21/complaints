@@ -33,6 +33,23 @@ const Header = ({ user, onSignOut }) => (
   </motion.header>
 );
 
+const EmailConfirmationMessage = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="max-w-xl mx-auto p-6 bg-yellow-50 rounded-2xl shadow-lg border border-yellow-100 text-center"
+  >
+    <h2 className="text-2xl font-bold text-yellow-800 mb-4">📧 Check Your Email</h2>
+    <p className="text-yellow-700 mb-4">
+      Please check your email and click the confirmation link to activate your account.
+      You won't be able to access the app until you confirm your email.
+    </p>
+    <p className="text-sm text-yellow-600">
+      Don't see the email? Check your spam folder or try signing up again.
+    </p>
+  </motion.div>
+);
+
 const MainContent = ({ children }) => (
   <motion.main
     initial={{ opacity: 0 }}
@@ -45,7 +62,7 @@ const MainContent = ({ children }) => (
 );
 
 const App = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, emailConfirmationRequired } = useAuth();
   const { complaints, addComplaint, updateReply, updateReaction } = useComplaints();
 
   const handleSignOut = async () => {
@@ -60,7 +77,9 @@ const App = () => {
     <div className="min-h-screen bg-gray-50">
       <Header user={user} onSignOut={handleSignOut} />
       <MainContent>
-        {user ? (
+        {emailConfirmationRequired ? (
+          <EmailConfirmationMessage />
+        ) : user ? (
           <>
             <ComplaintForm onSubmit={addComplaint} />
             <ComplaintFeed 
