@@ -116,23 +116,41 @@ export async function addReply(complaintId, content, userId) {
 // Reactions
 export async function addReaction(complaintId, reaction, userId) {
   // First, try to update existing reaction
-  const { data: existingReaction } = await supabase
+  const { data: existingReaction, error: findError } = await supabase
     .from('reactions')
-    .select('id')
-    .match({ complaint_id: complaintId, user_id: userId })
-    .single();
+    .select('*')
+    .eq('complaint_id', complaintId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (findError) throw findError;
 
   if (existingReaction) {
     // Update existing reaction
     const { data, error } = await supabase
       .from('reactions')
-      .update({ reaction })
-      .match({ id: existingReaction.id })
-      .select()
+      .update({ 
+        reaction,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', existingReaction.id)
+      .select(`
+        *,
+        user_profiles!user_id (
+          user_id,
+          username
+        )
+      `)
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      user: {
+        id: data.user_profiles?.user_id,
+        username: data.user_profiles?.username
+      }
+    };
   } else {
     // Create new reaction
     const { data, error } = await supabase
@@ -140,13 +158,27 @@ export async function addReaction(complaintId, reaction, userId) {
       .insert([{
         complaint_id: complaintId,
         reaction,
-        user_id: userId
+        user_id: userId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }])
-      .select()
+      .select(`
+        *,
+        user_profiles!user_id (
+          user_id,
+          username
+        )
+      `)
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      user: {
+        id: data.user_profiles?.user_id,
+        username: data.user_profiles?.username
+      }
+    };
   }
 }
 
