@@ -180,10 +180,14 @@ export const useComplaints = () => {
   const addComplaint = async (complaintData) => {
     console.log('Adding complaint with data:', complaintData);
     
-    // Add default user_id if not provided
+    // Get current user from localStorage
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{"id": "1"}');
+    console.log('Current user:', currentUser);
+
+    // Add user_id based on current user
     const complaintWithUser = {
       ...complaintData,
-      user_id: '1', // Default to Vishu's ID
+      user_id: currentUser.id,
       created_at: new Date().toISOString()
     };
 
@@ -192,7 +196,7 @@ export const useComplaints = () => {
     const { data, error } = await supabase
       .from('complaints')
       .insert([complaintWithUser])
-      .select('*'); // Add select() to return the inserted data
+      .select('*');
 
     if (error) {
       console.error('Error adding complaint:', error);
@@ -210,10 +214,14 @@ export const useComplaints = () => {
   const addReply = async (complaintId, content) => {
     console.log('Adding reply:', { complaintId, content });
 
+    // Get current user from localStorage
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{"id": "1"}');
+    console.log('Current user for reply:', currentUser);
+
     const replyData = {
       complaint_id: complaintId,
       content,
-      user_id: '1', // Default to Vishu's ID
+      user_id: currentUser.id,
       created_at: new Date().toISOString()
     };
 
