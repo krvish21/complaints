@@ -171,9 +171,18 @@ export const useComplaints = () => {
   };
 
   const addComplaint = async (complaintData) => {
+    console.log('Adding complaint with data:', complaintData);
+    
+    // Add default user_id if not provided
+    const complaintWithUser = {
+      ...complaintData,
+      user_id: '1', // Default to Vishu's ID
+      created_at: new Date().toISOString()
+    };
+
     const { error } = await supabase
       .from('complaints')
-      .insert([complaintData]);
+      .insert([complaintWithUser]);
 
     if (error) {
       console.error('Error adding complaint:', error);
