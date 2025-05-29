@@ -1,22 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-// Define users with their correct IDs
-export const USERS = {
-  SABAA: {
-    id: '1',
-    name: 'Sabaa'
-  },
-  VISHU: {
-    id: '2',
-    name: 'Vishu'
-  }
-};
-
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [users, setUsers] = useState(null);
   const [user, setUser] = useState(null);
 
   // Fetch users from database
@@ -24,33 +11,51 @@ export const UserProvider = ({ children }) => {
     const fetchUsers = async () => {
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('*');
+        .select('*')
+        .eq('username', 'Sabaa')
+        .single();
 
       if (error) {
-        console.error('Error fetching users:', error);
+        console.error('Error fetching user:', error);
         return;
       }
 
-      if (data && data.length > 0) {
-        const usersMap = {
-          SABAA: data.find(u => u.username.toLowerCase() === 'sabaa'),
-          VISHU: data.find(u => u.username.toLowerCase() === 'vishu')
-        };
-        setUsers(usersMap);
-        // Set default user to Sabaa
-        setUser(usersMap.SABAA);
+      if (data) {
+        setUser(data);
       }
     };
 
     fetchUsers();
   }, []);
 
-  if (!users || !user) {
-    return <div>Loading users...</div>;
+  const switchUser = async (username) => {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('username', username)
+      .single();
+
+    if (error) {
+      console.error('Error fetching user:', error);
+      return;
+    }
+
+    if (data) {
+      setUser(data);
+    }
+  };
+
+  if (!user) {
+    return <div>Loading user...</div>;
   }
 
   return (
-    <UserContext.Provider value={{ user, setUser, users }}>
+    <UserContext.Provider value={{ 
+      user, 
+      setUser: switchUser,
+      isVishu: user.username === 'Vishu',
+      isSabaa: user.username === 'Sabaa'
+    }}>
       {children}
     </UserContext.Provider>
   );

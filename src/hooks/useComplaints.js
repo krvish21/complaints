@@ -4,7 +4,7 @@ import { useUser } from '../contexts/UserContext';
 
 export const useComplaints = () => {
   const [complaints, setComplaints] = useState([]);
-  const { user: currentUser, users } = useUser();
+  const { user: currentUser, users, isVishu } = useUser();
 
   useEffect(() => {
     // Fetch initial data
@@ -282,7 +282,7 @@ export const useComplaints = () => {
     
     try {
       // First verify the current user is Vishu
-      if (currentUser.id !== users.VISHU.user_id) {
+      if (!isVishu) {
         console.error('Only Vishu can add compensations');
         return false;
       }
@@ -290,7 +290,7 @@ export const useComplaints = () => {
       // Then verify the reply is from Sabaa
       const { data: replyData, error: replyError } = await supabase
         .from('replies')
-        .select('user_id')
+        .select('user_id, user_profiles!user_id(username)')
         .eq('id', replyId)
         .single();
 
@@ -299,7 +299,7 @@ export const useComplaints = () => {
         return false;
       }
 
-      if (replyData.user_id !== users.SABAA.user_id) {
+      if (replyData.user_profiles?.username !== 'Sabaa') {
         console.error('Can only add compensations to Sabaa\'s replies');
         return false;
       }
@@ -327,7 +327,7 @@ export const useComplaints = () => {
           reply_id: replyId,
           options: options,
           status: 'pending',
-          user_id: currentUser.id
+          user_id: currentUser.user_id
         }])
         .select();
 
