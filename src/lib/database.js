@@ -17,6 +17,17 @@ export async function getComplaints() {
         user_profiles!user_id (
           user_id,
           username
+        ),
+        compensations (
+          id,
+          options,
+          status,
+          selected_option,
+          revealed_at,
+          user_profiles!user_id (
+            user_id,
+            username
+          )
         )
       ),
       reactions (
@@ -46,7 +57,14 @@ export async function getComplaints() {
       user: {
         id: reply.user_profiles?.user_id,
         username: reply.user_profiles?.username
-      }
+      },
+      compensations: reply.compensations?.map(compensation => ({
+        ...compensation,
+        user: {
+          id: compensation.user_profiles?.user_id,
+          username: compensation.user_profiles?.username
+        }
+      }))
     })),
     reactions: complaint.reactions?.map(reaction => ({
       ...reaction,
@@ -175,6 +193,63 @@ export async function addReaction(complaintId, reaction, userId) {
       }
     };
   }
+}
+
+// Compensations
+export async function addCompensation(replyId, options, userId) {
+  const { data, error } = await supabase
+    .from('compensations')
+    .insert([{
+      reply_id: replyId,
+      options,
+      user_id: userId,
+      status: 'pending' // pending, revealed
+    }])
+    .select(`
+      *,
+      user_profiles!user_id (
+        user_id,
+        username
+      )
+    `)
+    .single();
+
+  if (error) throw error;
+  return {
+    ...data,
+    user: {
+      id: data.user_profiles?.user_id,
+      username: data.user_profiles?.username
+    }
+  };
+}
+
+export async function revealCompensation(compensationId, selectedOption, userId) {
+  const { data, error } = await supabase
+    .from('compensations')
+    .update({
+      status: 'revealed',
+      selected_option: selectedOption,
+      revealed_at: new Date().toISOString()
+    })
+    .eq('id', compensationId)
+    .select(`
+      *,
+      user_profiles!user_id (
+        user_id,
+        username
+      )
+    `)
+    .single();
+
+  if (error) throw error;
+  return {
+    ...data,
+    user: {
+      id: data.user_profiles?.user_id,
+      username: data.user_profiles?.username
+    }
+  };
 }
 
 // Real-time subscriptions

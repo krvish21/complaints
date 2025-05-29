@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { moodThemes } from '../../lib/themes';
+import { CompensationPopup } from '../CompensationPopup/CompensationPopup';
+import { ScratchCard } from '../ScratchCard/ScratchCard';
 
 export const moods = ['😊', '😢', '😡', '🥺', '💔', '😤', '🙄', '😒'];
 
@@ -40,26 +42,76 @@ const UserBadge = ({ username, isAuthor, theme }) => (
   </span>
 );
 
-const Reply = ({ reply, currentUser, theme }) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="flex items-center justify-end gap-2 text-sm group"
-  >
-    <div className={`flex items-center gap-2 max-w-[85%] ${theme.text}`}>
-      <span className="text-xs text-gray-400 group-hover:opacity-100 opacity-50">
-        {format(new Date(reply.created_at), 'h:mm a')}
-      </span>
-      <span className="mx-1 text-gray-300">•</span>
-      <span className={`font-medium ${reply.user.id === currentUser?.id ? theme.accent : 'text-gray-700'}`}>
-        {reply.user.username}:
-      </span>
-      <span className="text-gray-600 break-words">{reply.content}</span>
-    </div>
-  </motion.div>
-);
+const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensation }) => {
+  const [showCompensationPopup, setShowCompensationPopup] = useState(false);
+  const [showScratchCard, setShowScratchCard] = useState(false);
+  const isVishu = currentUser?.name === 'Vishu';
+  const isSabaa = currentUser?.name === 'Sabaa';
+  const compensation = reply.compensations?.[0];
+  const canShowCompensation = isVishu && !compensation;
+  const canRevealCompensation = isSabaa && compensation?.status === 'pending';
 
-export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
+  const handleCompensationSubmit = (options) => {
+    onAddCompensation(reply.id, options);
+  };
+
+  const handleCompensationReveal = (selectedOption) => {
+    onRevealCompensation(compensation.id, selectedOption);
+  };
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex items-center justify-end gap-2 text-sm group"
+      >
+        <div className={`flex items-center gap-2 max-w-[85%] ${theme.text}`}>
+          <span className="text-xs text-gray-400 group-hover:opacity-100 opacity-50">
+            {format(new Date(reply.created_at), 'h:mm a')}
+          </span>
+          <span className="mx-1 text-gray-300">•</span>
+          <span className={`font-medium ${reply.user.id === currentUser?.id ? theme.accent : 'text-gray-700'}`}>
+            {reply.user.username}:
+          </span>
+          <span className="text-gray-600 break-words">{reply.content}</span>
+          
+          {compensation?.status === 'revealed' && (
+            <span className={`ml-2 ${theme.accent}`}>
+              🎁 {compensation.selected_option}
+            </span>
+          )}
+
+          {(canShowCompensation || canRevealCompensation) && (
+            <button
+              onClick={() => canShowCompensation ? setShowCompensationPopup(true) : setShowScratchCard(true)}
+              className={`ml-2 text-sm ${theme.accent} hover:underline opacity-0 group-hover:opacity-100 transition-opacity`}
+            >
+              {canShowCompensation ? '+ Add Compensation' : '🎁 Reveal Compensation'}
+            </button>
+          )}
+        </div>
+      </motion.div>
+
+      <CompensationPopup
+        isOpen={showCompensationPopup}
+        onClose={() => setShowCompensationPopup(false)}
+        onSubmit={handleCompensationSubmit}
+        theme={theme}
+      />
+
+      <ScratchCard
+        isOpen={showScratchCard}
+        onClose={() => setShowScratchCard(false)}
+        options={compensation?.options || []}
+        onReveal={handleCompensationReveal}
+        theme={theme}
+      />
+    </>
+  );
+};
+
+export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, onRevealCompensation, currentUser }) => {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [showReplies, setShowReplies] = useState(false);
@@ -184,7 +236,14 @@ export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
             {showReplies && complaint.replies?.length > 0 && (
               <div className={`mt-4 space-y-1.5 pt-3 border-t ${theme.border}`}>
                 {complaint.replies.map((reply) => (
-                  <Reply key={reply.id} reply={reply} currentUser={currentUser} theme={theme} />
+                  <Reply
+                    key={reply.id}
+                    reply={reply}
+                    currentUser={currentUser}
+                    theme={theme}
+                    onAddCompensation={onAddCompensation}
+                    onRevealCompensation={onRevealCompensation}
+                  />
                 ))}
               </div>
             )}

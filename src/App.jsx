@@ -63,7 +63,14 @@ const MainContent = ({ children }) => (
 
 const App = () => {
   const { user } = useUser();
-  const { complaints, addComplaint, addReply, updateReaction } = useComplaints();
+  const {
+    complaints,
+    addComplaint,
+    addReply,
+    updateReaction,
+    addCompensation,
+    revealCompensation
+  } = useComplaints();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -74,6 +81,8 @@ const App = () => {
           complaints={complaints} 
           onReply={addReply} 
           onReact={updateReaction}
+          onAddCompensation={addCompensation}
+          onRevealCompensation={revealCompensation}
           currentUser={user}
         />
       </MainContent>
