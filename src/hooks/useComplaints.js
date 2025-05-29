@@ -146,7 +146,7 @@ export const useComplaints = () => {
         ...complaint,
         // Add user info for the complaint
         user: complaint.user_profiles || { 
-          id: complaint.user_id,
+          user_id: complaint.user_id,
           username: complaint.user_id === '2' ? 'Vishu' : 'Sabaa'
         },
         // Transform reactions
@@ -154,7 +154,7 @@ export const useComplaints = () => {
           ...reaction,
           // Add user info for each reaction
           user: reaction.user_profiles || {
-            id: reaction.user_id,
+            user_id: reaction.user_id,
             username: reaction.user_id === '2' ? 'Vishu' : 'Sabaa'
           }
         })),
@@ -171,7 +171,7 @@ export const useComplaints = () => {
             status: comp.status || 'pending',
             selected_option: comp.selected_option || null,
             user: comp.user_profiles || {
-              id: comp.user_id,
+              user_id: comp.user_id,
               username: comp.user_id === '2' ? 'Vishu' : 'Sabaa'
             }
           }));
@@ -180,7 +180,7 @@ export const useComplaints = () => {
           const transformedReply = {
             ...reply,
             user: reply.user_profiles || {
-              id: reply.user_id,
+              user_id: reply.user_id,
               username: reply.user_id === '2' ? 'Vishu' : 'Sabaa'
             },
             compensations: transformedCompensations,

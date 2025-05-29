@@ -82,11 +82,11 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   });
 
   // Ensure we have valid user objects
-  if (!reply.user?.id || !currentUser?.user_id) {
+  if (!reply.user?.user_id || !currentUser?.user_id) {
     console.error('Invalid user data:', { 
       replyUser: reply.user, 
       currentUser,
-      replyUserId: reply.user?.id,
+      replyUserId: reply.user?.user_id,
       currentUserId: currentUser?.user_id
     });
     return null;
@@ -115,7 +115,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     canShowCompensation,
     canRevealCompensation,
     compensation,
-    replyUserId: reply.user.id,
+    replyUserId: reply.user.user_id,
     currentUserId: currentUser.user_id,
     replyUsername: reply.user.username,
     currentUsername: currentUser.username
@@ -131,7 +131,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
       canShowCompensation,
       canRevealCompensation,
       hasExistingCompensation,
-      replyUserId: reply.user.id,
+      replyUserId: reply.user.user_id,
       currentUserId: currentUser.user_id
     });
 
@@ -170,7 +170,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     console.log('Submitting compensation:', { 
       replyId: reply.id, 
       options,
-      replyUserId: reply.user.id,
+      replyUserId: reply.user.user_id,
       currentUserId: currentUser.user_id
     });
     
@@ -198,7 +198,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     console.log('Revealing compensation:', { 
       compensationId: compensation?.id, 
       selectedOption,
-      replyUserId: reply.user.id,
+      replyUserId: reply.user.user_id,
       currentUserId: currentUser.user_id
     });
 
@@ -229,7 +229,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
       canShowCompensation,
       canRevealCompensation,
       hasExistingCompensation,
-      replyUserId: reply.user.id,
+      replyUserId: reply.user.user_id,
       currentUserId: currentUser.user_id
     });
 
@@ -285,7 +285,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
           <div className="flex items-center justify-end gap-1.5 text-xs text-gray-500">
             <span>{format(new Date(reply.created_at), 'h:mm a')}</span>
             <span>•</span>
-            <span className={`font-medium ${reply.user.id === currentUser.user_id ? theme.accent : 'text-gray-700'}`}>
+            <span className={`font-medium ${reply.user.user_id === currentUser.user_id ? theme.accent : 'text-gray-700'}`}>
               {reply.user.username}
             </span>
           </div>
@@ -442,7 +442,11 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-            <UserBadge username={complaint.user.username} isAuthor={complaint.user.id === currentUser?.id} theme={theme} />
+            <UserBadge 
+              username={complaint.user.username} 
+              isAuthor={complaint.user.user_id === currentUser?.user_id} 
+              theme={theme} 
+            />
             <span>•</span>
             <span>{format(new Date(complaint.created_at), 'MMM d • h:mm a')}</span>
           </div>
