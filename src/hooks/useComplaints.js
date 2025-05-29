@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useUser } from '../contexts/UserContext';
 
 export const useComplaints = () => {
   const [complaints, setComplaints] = useState([]);
+  const { user: currentUser } = useUser();
 
   useEffect(() => {
     // Fetch initial data
@@ -179,9 +181,6 @@ export const useComplaints = () => {
 
   const addComplaint = async (complaintData) => {
     console.log('Adding complaint with data:', complaintData);
-    
-    // Get current user from localStorage
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{"id": "1"}');
     console.log('Current user:', currentUser);
 
     // Add user_id based on current user
@@ -213,9 +212,6 @@ export const useComplaints = () => {
 
   const addReply = async (complaintId, content) => {
     console.log('Adding reply:', { complaintId, content });
-
-    // Get current user from localStorage
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{"id": "1"}');
     console.log('Current user for reply:', currentUser);
 
     const replyData = {

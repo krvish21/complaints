@@ -9,6 +9,11 @@ import './App.css';
 const Header = () => {
   const { user, setUser, USERS } = useUser();
 
+  const handleUserChange = (userType) => {
+    console.log('Switching to user:', userType, USERS[userType]);
+    setUser(userType);
+  };
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -28,7 +33,7 @@ const Header = () => {
               type="radio"
               className="form-radio text-pink-500 h-4 w-4"
               checked={user.id === USERS.SABAA.id}
-              onChange={() => setUser('SABAA')}
+              onChange={() => handleUserChange('SABAA')}
             />
             <span className="ml-2 text-gray-700">Sabaa</span>
           </label>
@@ -37,12 +42,12 @@ const Header = () => {
               type="radio"
               className="form-radio text-pink-500 h-4 w-4"
               checked={user.id === USERS.VISHU.id}
-              onChange={() => setUser('VISHU')}
+              onChange={() => handleUserChange('VISHU')}
             />
             <span className="ml-2 text-gray-700">Vishu</span>
           </label>
           <span className="text-sm text-gray-500">
-            Acting as: <span className="font-medium text-gray-700">{user.name}</span>
+            Acting as: <span className="font-medium text-gray-700">{user.name} (ID: {user.id})</span>
           </span>
         </div>
       </div>
@@ -71,6 +76,8 @@ const App = () => {
     addCompensation,
     revealCompensation
   } = useComplaints();
+
+  console.log('App render - current user:', user);
 
   return (
     <div className="min-h-screen bg-gray-50">
