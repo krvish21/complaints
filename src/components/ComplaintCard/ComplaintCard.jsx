@@ -9,6 +9,21 @@ import { useUser } from '../../contexts/UserContext';
 
 export const moods = ['😊', '😢', '😡', '🥺', '💔', '😤', '🙄', '😒'];
 
+const UserBadge = ({ username, isAuthor, theme }) => (
+  <div className={`flex items-center gap-2 ${isAuthor ? theme.accent : 'text-gray-500'}`}>
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+    </svg>
+    <span className="font-medium">{username}</span>
+  </div>
+);
+
+const CategoryBadge = ({ category, theme }) => (
+  <span className={`px-3 py-1 rounded-full text-xs font-medium ${theme.lightBg} ${theme.text} border ${theme.border}`}>
+    {category}
+  </span>
+);
+
 const SeverityBadge = ({ severity, theme }) => {
   const severityColors = {
     low: theme.secondary + ' ' + theme.text,
@@ -23,26 +38,11 @@ const SeverityBadge = ({ severity, theme }) => {
   };
 
   return (
-    <span className={`px-2 py-0.5 rounded-full text-xs ${severityColors[severity] || severityColors.low}`}>
+    <span className={`px-3 py-1 rounded-full text-xs font-medium ${severityColors[severity] || severityColors.low}`}>
       {labels[severity] || 'Just saying'}
     </span>
   );
 };
-
-const CategoryBadge = ({ category, theme }) => (
-  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${theme.lightBg} ${theme.text} border ${theme.border}`}>
-    {category}
-  </span>
-);
-
-const UserBadge = ({ username, isAuthor, theme }) => (
-  <span className={`inline-flex items-center gap-1 text-sm ${isAuthor ? theme.accent : 'text-gray-500'}`}>
-    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-      <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-    </svg>
-    {username}
-  </span>
-);
 
 const Toast = ({ message, type = 'primary', theme }) => {
   const styles = {
@@ -82,7 +82,7 @@ const StatusBadge = ({ status, theme }) => {
 
   return (
     <span className={`
-      px-2 py-0.5 rounded-full text-xs font-medium border
+      px-3 py-1 rounded-full text-xs font-medium border
       ${statusStyles[status] || statusStyles.pending}
     `}>
       {statusIcons[status]} {status}
@@ -444,37 +444,38 @@ export const ComplaintCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`p-6 rounded-xl shadow-lg mb-4 ${theme.bg}`}
+      className={`rounded-xl shadow-lg mb-4 overflow-hidden ${theme.bg}`}
     >
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <UserBadge username={complaint.user.username} isAuthor theme={theme} />
-          <span className="text-2xl">{complaint.mood}</span>
+      <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <UserBadge username={complaint.user.username} isAuthor theme={theme} />
+            <span className="text-2xl">{complaint.mood}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <CategoryBadge category={complaint.category} theme={theme} />
+            <SeverityBadge severity={complaint.severity} theme={theme} />
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <CategoryBadge category={complaint.category} theme={theme} />
-          <SeverityBadge severity={complaint.severity} theme={theme} />
-          <StatusBadge status={complaint.status} theme={theme} />
-        </div>
-      </div>
 
-      {/* Title */}
-      <h3 className={`text-xl font-semibold ${theme.accent} mb-2`}>
-        {complaint.title}
-      </h3>
-
-      {/* Content */}
-      <div className="space-y-4">
-        <p className={`text-lg ${theme.text}`}>{complaint.content}</p>
-        
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <span>{format(new Date(complaint.created_at), 'MMM d, yyyy h:mm a')}</span>
+        {/* Content */}
+        <div className="mt-4 space-y-4">
+          <p className={`text-base sm:text-lg ${theme.text} leading-relaxed`}>
+            {complaint.description}
+          </p>
+          
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
+            <span className="text-gray-500">
+              {format(new Date(complaint.created_at), 'MMM d, yyyy • h:mm a')}
+            </span>
+            <StatusBadge status={complaint.status} theme={theme} />
+          </div>
         </div>
       </div>
 
       {/* Pleas Section */}
-      <div className="mt-4">
+      <div className="px-4 sm:px-6">
         <EscalationControls
           complaint={complaint}
           onEscalate={onEscalate}
@@ -485,28 +486,19 @@ export const ComplaintCard = ({
       </div>
 
       {/* Replies Section */}
-      <div className={`mt-4 border-t ${theme.border}`}>
-        <div className="p-3">
-          <div className="flex items-center justify-between">
-            {isSabaa && (
-              <div className="flex-1">
-                <StatusDropdown 
-                  currentStatus={complaint.status}
-                  onChange={(status) => onEscalate(complaint.id, status)}
-                  theme={theme}
-                />
-              </div>
-            )}
-            <div className="flex items-center gap-4">
+      <div className={`mt-4 border-t ${theme.border} bg-gray-50/80`}>
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-4">
               <button
                 onClick={() => setShowReplies(!showReplies)}
-                className={`text-xs ${theme.accent} hover:underline flex items-center gap-1`}
+                className={`text-sm ${theme.accent} hover:underline flex items-center gap-1.5`}
               >
                 {replyCount > 0 ? (
                   <>
                     {replyCount} {replyCount === 1 ? 'thought' : 'thoughts'}
                     <svg
-                      className={`w-3 h-3 transform transition-transform ${showReplies ? 'rotate-180' : ''}`}
+                      className={`w-4 h-4 transform transition-transform ${showReplies ? 'rotate-180' : ''}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -521,12 +513,21 @@ export const ComplaintCard = ({
               {!isReplying && (
                 <button
                   onClick={() => setIsReplying(true)}
-                  className={`text-xs ${theme.accent} hover:underline`}
+                  className={`text-sm ${theme.accent} hover:underline`}
                 >
                   Reply
                 </button>
               )}
             </div>
+            {isSabaa && (
+              <div className="w-full sm:w-auto">
+                <StatusDropdown 
+                  currentStatus={complaint.status}
+                  onChange={(status) => onEscalate(complaint.id, status)}
+                  theme={theme}
+                />
+              </div>
+            )}
           </div>
 
           <AnimatePresence>
@@ -539,7 +540,7 @@ export const ComplaintCard = ({
               >
                 {/* Existing Replies */}
                 {showReplies && complaint.replies?.length > 0 && (
-                  <div className="mt-3 space-y-2">
+                  <div className="mt-4 space-y-3">
                     {complaint.replies.map((reply) => (
                       <Reply
                         key={reply.id}
@@ -557,7 +558,7 @@ export const ComplaintCard = ({
                 {isReplying && (
                   <motion.form
                     onSubmit={handleSubmitReply}
-                    className="mt-3 flex flex-col gap-2"
+                    className="mt-4 space-y-3"
                   >
                     <div className="relative">
                       <input
@@ -565,7 +566,7 @@ export const ComplaintCard = ({
                         value={replyContent}
                         onChange={(e) => setReplyContent(e.target.value)}
                         placeholder="Write your thoughts..."
-                        className={`w-full p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400 ${
+                        className={`w-full p-3 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400 ${
                           replyError ? 'border-red-500' : ''
                         }`}
                       />
@@ -573,7 +574,7 @@ export const ComplaintCard = ({
                         <p className="text-xs text-red-500 mt-1">{replyError}</p>
                       )}
                     </div>
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-col sm:flex-row justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => {
@@ -581,14 +582,14 @@ export const ComplaintCard = ({
                           setReplyError(null);
                           setReplyContent('');
                         }}
-                        className="px-3 py-1 text-xs text-gray-600 hover:text-gray-800"
+                        className="w-full sm:w-auto px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={!replyContent.trim()}
-                        className={`px-3 py-1 ${theme.primary} text-white rounded-lg text-xs shadow-sm disabled:opacity-50`}
+                        className={`w-full sm:w-auto px-4 py-2 ${theme.primary} text-white rounded-lg text-sm shadow-sm disabled:opacity-50`}
                       >
                         Send
                       </button>

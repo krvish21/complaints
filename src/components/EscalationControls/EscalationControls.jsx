@@ -6,10 +6,9 @@ export const StatusDropdown = ({ currentStatus, onChange, theme }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const statusOptions = [
-    { value: 'pending', label: '⏳ Pending', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'ok', label: '👌 OK', color: `${theme.lightBg} ${theme.text}` },
     { value: 'upheld', label: '⚠️ Upheld', color: 'bg-red-100 text-red-800' },
     { value: 'resolved', label: '✅ Resolved', color: 'bg-green-100 text-green-800' },
-    { value: 'ok', label: '👌 OK', color: `${theme.lightBg} ${theme.text}` }
   ];
 
   const currentOption = statusOptions.find(opt => opt.value === currentStatus) || statusOptions[0];
