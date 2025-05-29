@@ -63,7 +63,7 @@ const MainContent = ({ children }) => (
 
 const App = () => {
   const { user } = useUser();
-  const { complaints, addComplaint, updateReply, updateReaction } = useComplaints();
+  const { complaints, addComplaint, addReply, updateReaction } = useComplaints();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -72,7 +72,7 @@ const App = () => {
         <ComplaintForm onSubmit={addComplaint} />
         <ComplaintFeed 
           complaints={complaints} 
-          onReply={updateReply} 
+          onReply={addReply} 
           onReact={updateReaction}
           currentUser={user}
         />
