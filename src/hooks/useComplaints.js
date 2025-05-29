@@ -4,7 +4,7 @@ import { useUser } from '../contexts/UserContext';
 
 export const useComplaints = () => {
   const [complaints, setComplaints] = useState([]);
-  const { user: currentUser } = useUser();
+  const { user: currentUser, users } = useUser();
 
   useEffect(() => {
     // Fetch initial data
@@ -282,7 +282,7 @@ export const useComplaints = () => {
     
     try {
       // First verify the current user is Vishu
-      if (currentUser.id !== '1') {
+      if (currentUser.id !== users.VISHU.user_id) {
         console.error('Only Vishu can add compensations');
         return false;
       }
@@ -299,7 +299,7 @@ export const useComplaints = () => {
         return false;
       }
 
-      if (replyData.user_id !== '2') {
+      if (replyData.user_id !== users.SABAA.user_id) {
         console.error('Can only add compensations to Sabaa\'s replies');
         return false;
       }

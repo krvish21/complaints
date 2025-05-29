@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { moodThemes } from '../../lib/themes';
 import { CompensationPopup } from '../CompensationPopup/CompensationPopup';
 import { ScratchCard } from '../ScratchCard/ScratchCard';
+import { useUser } from '../../contexts/UserContext';
 
 export const moods = ['😊', '😢', '😡', '🥺', '💔', '😤', '🙄', '😒'];
 
@@ -68,6 +69,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   const [showScratchCards, setShowScratchCards] = useState(false);
   const [firstScratchedIndex, setFirstScratchedIndex] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'primary' });
+  const { users } = useUser();
   
   // Debug logging
   console.log('Reply props:', {
@@ -78,15 +80,15 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   });
 
   // Ensure we have valid user objects
-  if (!reply.user?.id || !currentUser?.id) {
-    console.error('Invalid user data:', { reply: reply.user, currentUser });
+  if (!reply.user?.id || !currentUser?.id || !users) {
+    console.error('Invalid user data:', { reply: reply.user, currentUser, users });
     return null;
   }
 
   // User role checks
-  const isReplyFromSabaa = reply.user.id === '2';
-  const isVishu = currentUser.id === '1';
-  const isSabaa = currentUser.id === '2';
+  const isReplyFromSabaa = reply.user.id === users.SABAA.user_id;
+  const isVishu = currentUser.id === users.VISHU.user_id;
+  const isSabaa = currentUser.id === users.SABAA.user_id;
   const compensation = reply.compensations?.[0];
   
   // Compensation state checks
@@ -109,7 +111,8 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     canRevealCompensation,
     compensation,
     replyUserId: reply.user.id,
-    currentUserId: currentUser.id
+    currentUserId: currentUser.id,
+    users
   });
 
   const showToast = (message, type = 'primary') => {

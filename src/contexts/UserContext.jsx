@@ -1,13 +1,14 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 // Define users with their correct IDs
 export const USERS = {
   SABAA: {
-    id: '2',
+    id: '1',
     name: 'Sabaa'
   },
   VISHU: {
-    id: '1',
+    id: '2',
     name: 'Vishu'
   }
 };
@@ -15,21 +16,41 @@ export const USERS = {
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  // Initialize with Sabaa as default
-  const [user, setUserState] = useState(USERS.SABAA);
+  const [users, setUsers] = useState(null);
+  const [user, setUser] = useState(null);
 
-  const setUser = (userType) => {
-    if (typeof userType === 'string' && USERS[userType]) {
-      setUserState(USERS[userType]);
-    } else if (userType && userType.id) {
-      setUserState(userType);
-    } else {
-      console.error('Invalid user:', userType);
-    }
-  };
+  // Fetch users from database
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching users:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const usersMap = {
+          SABAA: data.find(u => u.username.toLowerCase() === 'sabaa'),
+          VISHU: data.find(u => u.username.toLowerCase() === 'vishu')
+        };
+        setUsers(usersMap);
+        // Set default user to Sabaa
+        setUser(usersMap.SABAA);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  if (!users || !user) {
+    return <div>Loading users...</div>;
+  }
 
   return (
-    <UserContext.Provider value={{ user, setUser, USERS }}>
+    <UserContext.Provider value={{ user, setUser, users }}>
       {children}
     </UserContext.Provider>
   );
