@@ -406,7 +406,7 @@ export const useComplaints = () => {
       .update({ 
         status: 'revealed',
         selected_option: selectedOption,
-        updated_at: new Date().toISOString()
+        revealed_at: new Date().toISOString()
       })
       .eq('id', compensationId);
 
