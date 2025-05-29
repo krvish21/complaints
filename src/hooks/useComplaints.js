@@ -126,14 +126,12 @@ export const useComplaints = () => {
 
     // Transform the data to include user information
     const transformedData = complaintsData.map(complaint => {
-      console.log('Processing complaint:', complaint);
       const transformedComplaint = {
         ...complaint,
         // Add user info for the complaint
         user: { 
           id: complaint.user_id,
-          username: complaint.user_id === '2' ? 'Sabaa' : 'Vishu',
-          email: complaint.user_id === '2' ? 'sabaa@example.com' : 'vishu@example.com'
+          username: complaint.user_id === '2' ? 'Sabaa' : 'Vishu'
         },
         // Transform reactions
         reactions: (complaint.reactions || []).map(reaction => ({
@@ -141,8 +139,7 @@ export const useComplaints = () => {
           // Add user info for each reaction
           user: {
             id: reaction.user_id,
-            username: reaction.user_id === '2' ? 'Sabaa' : 'Vishu',
-            email: reaction.user_id === '2' ? 'sabaa@example.com' : 'vishu@example.com'
+            username: reaction.user_id === '2' ? 'Sabaa' : 'Vishu'
           }
         })),
         // Transform replies
@@ -159,26 +156,20 @@ export const useComplaints = () => {
             selected_option: comp.selected_option || null
           }));
 
-          // Create the transformed reply
-          const transformedReply = {
+          return {
             ...reply,
             // Add user info for each reply
             user: {
               id: reply.user_id,
-              username: reply.user_id === '2' ? 'Sabaa' : 'Vishu',
-              email: reply.user_id === '2' ? 'sabaa@example.com' : 'vishu@example.com'
+              username: reply.user_id === '2' ? 'Sabaa' : 'Vishu'
             },
             // Set transformed compensations
             compensations: transformedCompensations,
             hasCompensation: transformedCompensations.length > 0
           };
-
-          console.log('Transformed reply:', transformedReply);
-          return transformedReply;
         })
       };
 
-      console.log('Transformed complaint:', transformedComplaint);
       return transformedComplaint;
     });
 
