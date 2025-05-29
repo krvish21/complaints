@@ -18,7 +18,10 @@ export const useComplaints = () => {
           schema: 'public',
           table: 'complaints'
         },
-        () => fetchComplaints()
+        (payload) => {
+          console.log('Complaints change detected:', payload);
+          fetchComplaints();
+        }
       )
       .subscribe();
 
@@ -31,7 +34,10 @@ export const useComplaints = () => {
           schema: 'public',
           table: 'replies'
         },
-        () => fetchComplaints()
+        (payload) => {
+          console.log('Replies change detected:', payload);
+          fetchComplaints();
+        }
       )
       .subscribe();
 
@@ -44,7 +50,10 @@ export const useComplaints = () => {
           schema: 'public',
           table: 'reactions'
         },
-        () => fetchComplaints()
+        (payload) => {
+          console.log('Reactions change detected:', payload);
+          fetchComplaints();
+        }
       )
       .subscribe();
 
@@ -57,7 +66,10 @@ export const useComplaints = () => {
           schema: 'public',
           table: 'compensations'
         },
-        () => fetchComplaints()
+        (payload) => {
+          console.log('Compensations change detected:', payload);
+          fetchComplaints();
+        }
       )
       .subscribe();
 
@@ -70,6 +82,7 @@ export const useComplaints = () => {
   }, []);
 
   const fetchComplaints = async () => {
+    console.log('Fetching complaints...');
     // Get complaints with their related data
     const { data: complaintsData, error: complaintsError } = await supabase
       .from('complaints')
@@ -77,7 +90,8 @@ export const useComplaints = () => {
         *,
         reactions (
           id,
-          reaction
+          reaction,
+          user_id
         ),
         replies (
           id,
@@ -88,7 +102,8 @@ export const useComplaints = () => {
             id,
             status,
             options,
-            selected_option
+            selected_option,
+            reply_id
           )
         )
       `)
@@ -99,38 +114,45 @@ export const useComplaints = () => {
       return;
     }
 
-    // Transform the data to include default user information
-    const transformedData = (complaintsData || []).map(complaint => ({
-      ...complaint,
-      // Add default user info for the complaint
-      user: { 
-        id: complaint.user_id || 'unknown',
-        username: complaint.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
-      },
-      // Transform reactions
-      reactions: (complaint.reactions || []).map(reaction => ({
-        ...reaction,
-        // Add default user info for each reaction
-        user: {
-          id: reaction.user_id || 'unknown',
-          username: reaction.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
-        }
-      })),
-      // Transform replies
-      replies: (complaint.replies || []).map(reply => ({
-        ...reply,
-        // Add default user info for each reply
-        user: {
-          id: reply.user_id || 'unknown',
-          username: reply.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
-        },
-        // Ensure compensations array exists and check if any compensations exist
-        compensations: reply.compensations || [],
-        hasCompensation: (reply.compensations || []).length > 0
-      }))
-    }));
+    console.log('Raw complaints data:', complaintsData);
 
-    console.log('Transformed complaints data:', transformedData);
+    // Transform the data to include default user information
+    const transformedData = (complaintsData || []).map(complaint => {
+      const transformedComplaint = {
+        ...complaint,
+        // Add default user info for the complaint
+        user: { 
+          id: complaint.user_id || 'unknown',
+          username: complaint.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
+        },
+        // Transform reactions
+        reactions: (complaint.reactions || []).map(reaction => ({
+          ...reaction,
+          // Add default user info for each reaction
+          user: {
+            id: reaction.user_id || 'unknown',
+            username: reaction.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
+          }
+        })),
+        // Transform replies
+        replies: (complaint.replies || []).map(reply => ({
+          ...reply,
+          // Add default user info for each reply
+          user: {
+            id: reply.user_id || 'unknown',
+            username: reply.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
+          },
+          // Ensure compensations array exists and check if any compensations exist
+          compensations: reply.compensations || [],
+          hasCompensation: (reply.compensations || []).length > 0
+        }))
+      };
+
+      console.log('Transformed complaint:', transformedComplaint);
+      return transformedComplaint;
+    });
+
+    console.log('Setting complaints state with:', transformedData);
     setComplaints(transformedData);
   };
 
@@ -186,12 +208,15 @@ export const useComplaints = () => {
   };
 
   const addCompensation = async (replyId, options) => {
+    console.log('Adding compensation for reply:', replyId, 'with options:', options);
     try {
       // Check if a compensation already exists for this reply
       const { data: existingCompensations, error: checkError } = await supabase
         .from('compensations')
-        .select('id')
+        .select('id, reply_id')
         .eq('reply_id', replyId);
+
+      console.log('Existing compensations check:', existingCompensations);
 
       if (checkError) {
         console.error('Error checking existing compensations:', checkError);
@@ -200,23 +225,26 @@ export const useComplaints = () => {
 
       // If compensations already exist, don't add a new one
       if (existingCompensations && existingCompensations.length > 0) {
-        console.error('Compensation already exists for this reply');
+        console.error('Compensation already exists for this reply:', existingCompensations);
         return false;
       }
 
       // Add the new compensation
-      const { error: insertError } = await supabase
+      const { data: newCompensation, error: insertError } = await supabase
         .from('compensations')
         .insert([{ 
           reply_id: replyId, 
           options,
           status: 'pending'
-        }]);
+        }])
+        .select();
 
       if (insertError) {
         console.error('Error adding compensation:', insertError);
         return false;
       }
+
+      console.log('Successfully added compensation:', newCompensation);
 
       // Trigger a refresh of the complaints data
       await fetchComplaints();
@@ -228,6 +256,7 @@ export const useComplaints = () => {
   };
 
   const revealCompensation = async (compensationId, selectedOption) => {
+    console.log('Revealing compensation:', compensationId, 'with option:', selectedOption);
     const { error } = await supabase
       .from('compensations')
       .update({ 
@@ -240,6 +269,9 @@ export const useComplaints = () => {
       console.error('Error revealing compensation:', error);
       return false;
     }
+
+    // Trigger a refresh of the complaints data
+    await fetchComplaints();
     return true;
   };
 
