@@ -197,6 +197,7 @@ export async function addReaction(complaintId, reaction, userId) {
 
 // Compensations
 export async function addCompensation(replyId, options, userId) {
+  console.log('Adding compensation with:', { replyId, options, userId });
   const { data, error } = await supabase
     .from('compensations')
     .insert([{
@@ -214,7 +215,11 @@ export async function addCompensation(replyId, options, userId) {
     `)
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error adding compensation:', error);
+    console.log('Attempted with user_id:', userId);
+    throw error;
+  }
   return {
     ...data,
     user: {
