@@ -44,26 +44,27 @@ const Reply = ({ reply, currentUser, theme }) => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className={`pl-4 border-l-2 ${theme.border} mb-3`}
+    className="flex items-start gap-2 text-sm"
   >
-    <div className="flex items-center gap-2 mb-1">
-      <UserBadge 
-        username={reply.user.username} 
-        isAuthor={reply.user.id === currentUser?.id}
-        theme={theme}
-      />
-      <span className="text-xs text-gray-400">
-        {format(new Date(reply.created_at), 'MMM d, yyyy • h:mm a')}
+    <div className={`flex-1 ${theme.text}`}>
+      <span className={`font-medium ${reply.user.id === currentUser?.id ? theme.accent : 'text-gray-700'}`}>
+        {reply.user.username}
+      </span>
+      <span className="mx-2 text-gray-400">•</span>
+      <span className="text-gray-600">{reply.content}</span>
+      <span className="ml-2 text-xs text-gray-400">
+        {format(new Date(reply.created_at), 'MMM d, h:mm a')}
       </span>
     </div>
-    <p className={`text-sm ${theme.text}`}>{reply.content}</p>
   </motion.div>
 );
 
 export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
+  const [showReplies, setShowReplies] = useState(false);
   const theme = moodThemes[complaint.mood] || moodThemes['😊'];
+  const replyCount = complaint.replies?.length || 0;
 
   const handleSubmitReply = (e) => {
     e.preventDefault();
@@ -71,6 +72,7 @@ export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
       onReply(complaint.id, replyContent);
       setReplyContent('');
       setIsReplying(false);
+      setShowReplies(true); // Show replies after posting
     }
   };
 
@@ -106,20 +108,20 @@ export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
       </div>
 
       {/* Tags */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-4">
         <SeverityBadge severity={complaint.severity} theme={theme} />
         <CategoryBadge category={complaint.category} theme={theme} />
       </div>
 
-      {/* Reactions */}
-      <div className={`flex items-center gap-4 mb-4 pt-4 border-t ${theme.border}`}>
+      {/* Reactions and Reply Button */}
+      <div className={`flex items-center gap-4 pt-4 border-t ${theme.border}`}>
         <div className="relative">
           <select
-            className={`appearance-none ${theme.lightBg} ${theme.hover} transition-colors rounded-full px-4 py-2 pr-8 text-sm cursor-pointer focus:outline-none focus:ring-2 ring-offset-2 ${theme.border}`}
+            className={`appearance-none ${theme.lightBg} ${theme.hover} transition-colors rounded-full px-4 py-1.5 pr-8 text-sm cursor-pointer focus:outline-none focus:ring-2 ring-offset-2 ${theme.border}`}
             value={complaint.userReaction || ''}
             onChange={(e) => onReact(complaint.id, e.target.value)}
           >
-            <option value="">React to this...</option>
+            <option value="">React...</option>
             {moods.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
@@ -143,64 +145,76 @@ export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
             </motion.span>
           ))}
         </div>
-        <motion.button
-          onClick={() => setIsReplying(!isReplying)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className={`text-sm ${theme.accent} ${theme.hover.replace('bg', 'text')} flex items-center gap-2`}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-          </svg>
-          Reply
-        </motion.button>
+        <div className="flex-1 flex items-center justify-end gap-4">
+          {replyCount > 0 && (
+            <button
+              onClick={() => setShowReplies(!showReplies)}
+              className={`text-sm ${theme.accent} hover:underline flex items-center gap-1`}
+            >
+              {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
+              <svg
+                className={`w-4 h-4 transform transition-transform ${showReplies ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          )}
+          <button
+            onClick={() => setIsReplying(!isReplying)}
+            className={`text-sm ${theme.accent} hover:underline flex items-center gap-1`}
+          >
+            {isReplying ? 'Cancel' : 'Reply'}
+          </button>
+        </div>
       </div>
 
-      {/* Replies */}
-      <div className="space-y-4">
-        {complaint.replies?.map((reply) => (
-          <Reply key={reply.id} reply={reply} currentUser={currentUser} theme={theme} />
-        ))}
-
-        <AnimatePresence>
-          {isReplying && (
-            <motion.form
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              onSubmit={handleSubmitReply}
-              className="overflow-hidden"
-            >
-              <motion.textarea
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Write your response..."
-                className={`w-full p-3 border-2 ${theme.border} rounded-xl focus:outline-none focus:border-opacity-100 bg-white placeholder-gray-400 min-h-[100px] resize-y mb-3 ${theme.text}`}
-                whileFocus={{ scale: 1.01 }}
-              />
-              <div className="flex justify-end gap-2">
-                <motion.button
-                  type="button"
-                  onClick={() => setIsReplying(false)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`px-4 py-2 text-sm ${theme.accent} ${theme.hover.replace('bg', 'text')}`}
-                >
-                  Cancel
-                </motion.button>
+      {/* Replies Section */}
+      <AnimatePresence>
+        {(showReplies || isReplying) && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            {/* Existing Replies */}
+            {showReplies && complaint.replies?.length > 0 && (
+              <div className={`mt-4 space-y-2 pt-3 border-t ${theme.border}`}>
+                {complaint.replies.map((reply) => (
+                  <Reply key={reply.id} reply={reply} currentUser={currentUser} theme={theme} />
+                ))}
+              </div>
+            )}
+            
+            {/* Reply Form */}
+            {isReplying && (
+              <motion.form
+                onSubmit={handleSubmitReply}
+                className={`mt-4 flex gap-2 items-center pt-3 ${showReplies ? '' : `border-t ${theme.border}`}`}
+              >
+                <input
+                  type="text"
+                  value={replyContent}
+                  onChange={(e) => setReplyContent(e.target.value)}
+                  placeholder="Write a reply..."
+                  className={`flex-1 p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400`}
+                />
                 <motion.button
                   type="submit"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`px-4 py-2 ${theme.primary} text-white rounded-xl text-sm shadow-md`}
+                  className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm shadow-md`}
                 >
-                  Send Response
+                  Send
                 </motion.button>
-              </div>
-            </motion.form>
-          )}
-        </AnimatePresence>
-      </div>
+              </motion.form>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
