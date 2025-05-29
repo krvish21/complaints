@@ -120,12 +120,6 @@ export const EscalationControls = ({
   const { isVishu, isSabaa } = useUser();
   const [showPleaForm, setShowPleaForm] = useState(false);
 
-  const handleEscalate = (status) => {
-    if (status !== complaint.status) {
-      onEscalate(complaint.id, status);
-    }
-  };
-
   const handlePleaSubmit = (content) => {
     onCreatePlea(complaint.id, content);
     setShowPleaForm(false);
@@ -133,20 +127,6 @@ export const EscalationControls = ({
 
   const handleResolvePlea = (pleaId, accepted) => {
     onResolvePlea(pleaId, accepted ? 'accepted' : 'rejected');
-  };
-
-  const renderEscalationControls = () => {
-    if (!isSabaa) return null;
-
-    return (
-      <div className="flex items-center gap-2">
-        <StatusDropdown 
-          currentStatus={complaint.status}
-          onChange={handleEscalate}
-          theme={theme}
-        />
-      </div>
-    );
   };
 
   const renderPleaControls = () => {
@@ -202,7 +182,6 @@ export const EscalationControls = ({
   return (
     <div className="mt-4">
       <AnimatePresence>
-        {renderEscalationControls()}
         {renderPleaControls()}
       </AnimatePresence>
     </div>

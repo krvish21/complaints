@@ -455,6 +455,7 @@ export const ComplaintCard = ({
         <div className="flex items-center gap-2">
           <CategoryBadge category={complaint.category} theme={theme} />
           <SeverityBadge severity={complaint.severity} theme={theme} />
+          <StatusBadge status={complaint.status} theme={theme} />
         </div>
       </div>
 
@@ -465,11 +466,10 @@ export const ComplaintCard = ({
 
       {/* Content */}
       <div className="space-y-4">
-        <p className={`text-base ${theme.text}`}>{complaint.content}</p>
+        <p className={`text-lg ${theme.text}`}>{complaint.content}</p>
         
         <div className="flex items-center justify-between text-sm text-gray-500">
           <span>{format(new Date(complaint.created_at), 'MMM d, yyyy h:mm a')}</span>
-          <StatusBadge status={complaint.status} theme={theme} />
         </div>
       </div>
 
