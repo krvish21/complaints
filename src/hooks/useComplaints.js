@@ -4,7 +4,7 @@ import { useUser } from '../contexts/UserContext';
 
 export const useComplaints = () => {
   const [complaints, setComplaints] = useState([]);
-  const { user: currentUser, users, isVishu } = useUser();
+  const { user: currentUser, users, isVishu, isSabaa } = useUser();
 
   useEffect(() => {
     // Fetch initial data
@@ -376,16 +376,42 @@ export const useComplaints = () => {
 
   const revealCompensation = async (compensationId, selectedOption) => {
     console.log('Revealing compensation:', compensationId, 'with option:', selectedOption);
-    const { error } = await supabase
+    
+    // First verify the current user is Sabaa
+    if (!isSabaa) {
+      console.error('Only Sabaa can reveal compensations');
+      return false;
+    }
+
+    // Get the current compensation state
+    const { data: compensation, error: fetchError } = await supabase
+      .from('compensations')
+      .select('*')
+      .eq('id', compensationId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching compensation:', fetchError);
+      return false;
+    }
+
+    if (compensation.status === 'revealed') {
+      console.error('Compensation already revealed');
+      return false;
+    }
+
+    // Update the compensation with all required fields
+    const { error: updateError } = await supabase
       .from('compensations')
       .update({ 
         status: 'revealed',
-        selected_option: selectedOption
+        selected_option: selectedOption,
+        updated_at: new Date().toISOString()
       })
       .eq('id', compensationId);
 
-    if (error) {
-      console.error('Error revealing compensation:', error);
+    if (updateError) {
+      console.error('Error revealing compensation:', updateError);
       return false;
     }
 
