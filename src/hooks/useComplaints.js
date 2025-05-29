@@ -83,6 +83,7 @@ export const useComplaints = () => {
           id,
           content,
           created_at,
+          user_id,
           compensations (
             id,
             status,
@@ -123,8 +124,9 @@ export const useComplaints = () => {
           id: reply.user_id || 'unknown',
           username: reply.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
         },
-        // Ensure compensations array exists
-        compensations: reply.compensations || []
+        // Ensure compensations array exists and check if any compensations exist
+        compensations: reply.compensations || [],
+        hasCompensation: (reply.compensations || []).length > 0
       }))
     }));
 
@@ -184,6 +186,22 @@ export const useComplaints = () => {
   };
 
   const addCompensation = async (replyId, options) => {
+    // Check if a compensation already exists for this reply
+    const { data: existingCompensations, error: checkError } = await supabase
+      .from('compensations')
+      .select('id')
+      .eq('reply_id', replyId);
+
+    if (checkError) {
+      console.error('Error checking existing compensations:', checkError);
+      return false;
+    }
+
+    if (existingCompensations && existingCompensations.length > 0) {
+      console.error('Compensation already exists for this reply');
+      return false;
+    }
+
     const { error } = await supabase
       .from('compensations')
       .insert([{ 
