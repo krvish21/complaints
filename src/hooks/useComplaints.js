@@ -90,22 +90,38 @@ export const useComplaints = () => {
       .from('complaints')
       .select(`
         *,
+        user_profiles!user_id (
+          user_id,
+          username
+        ),
         reactions (
           id,
           reaction,
-          user_id
+          user_id,
+          user_profiles!user_id (
+            user_id,
+            username
+          )
         ),
         replies (
           id,
           content,
           created_at,
           user_id,
+          user_profiles!user_id (
+            user_id,
+            username
+          ),
           compensations (
             id,
             status,
             options,
             selected_option,
-            reply_id
+            user_id,
+            user_profiles!user_id (
+              user_id,
+              username
+            )
           )
         )
       `)
@@ -129,17 +145,17 @@ export const useComplaints = () => {
       const transformedComplaint = {
         ...complaint,
         // Add user info for the complaint
-        user: { 
+        user: complaint.user_profiles || { 
           id: complaint.user_id,
-          username: complaint.user_id === '2' ? 'Sabaa' : 'Vishu'
+          username: complaint.user_id === '2' ? 'Vishu' : 'Sabaa'
         },
         // Transform reactions
         reactions: (complaint.reactions || []).map(reaction => ({
           ...reaction,
           // Add user info for each reaction
-          user: {
+          user: reaction.user_profiles || {
             id: reaction.user_id,
-            username: reaction.user_id === '2' ? 'Sabaa' : 'Vishu'
+            username: reaction.user_id === '2' ? 'Vishu' : 'Sabaa'
           }
         })),
         // Transform replies
@@ -153,15 +169,19 @@ export const useComplaints = () => {
             ...comp,
             options: Array.isArray(comp.options) ? comp.options : [],
             status: comp.status || 'pending',
-            selected_option: comp.selected_option || null
+            selected_option: comp.selected_option || null,
+            user: comp.user_profiles || {
+              id: comp.user_id,
+              username: comp.user_id === '2' ? 'Vishu' : 'Sabaa'
+            }
           }));
 
           return {
             ...reply,
             // Add user info for each reply
-            user: {
+            user: reply.user_profiles || {
               id: reply.user_id,
-              username: reply.user_id === '2' ? 'Sabaa' : 'Vishu'
+              username: reply.user_id === '2' ? 'Vishu' : 'Sabaa'
             },
             // Set transformed compensations
             compensations: transformedCompensations,
@@ -184,7 +204,7 @@ export const useComplaints = () => {
     // Add user_id based on current user
     const complaintWithUser = {
       ...complaintData,
-      user_id: currentUser.id,
+      user_id: currentUser.user_id,
       created_at: new Date().toISOString()
     };
 
@@ -215,7 +235,7 @@ export const useComplaints = () => {
     const replyData = {
       complaint_id: complaintId,
       content,
-      user_id: currentUser.id,
+      user_id: currentUser.user_id,
       created_at: new Date().toISOString()
     };
 
@@ -246,7 +266,7 @@ export const useComplaints = () => {
       const { error } = await supabase
         .from('reactions')
         .delete()
-        .match({ complaint_id: complaintId, user_id: currentUser.id });
+        .match({ complaint_id: complaintId, user_id: currentUser.user_id });
 
       if (error) {
         console.error('Error removing reaction:', error);
@@ -259,7 +279,7 @@ export const useComplaints = () => {
           { 
             complaint_id: complaintId, 
             reaction,
-            user_id: currentUser.id
+            user_id: currentUser.user_id
           },
           { 
             onConflict: 'complaint_id,user_id'
