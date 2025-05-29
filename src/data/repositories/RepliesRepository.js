@@ -7,7 +7,7 @@ export const RepliesRepository = {
       .insert([replyData])
       .select(`
         *,
-        user_profiles!user_id (
+        author:user_profiles!replies_user_id_fkey (
           user_id,
           username
         )

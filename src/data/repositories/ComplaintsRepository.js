@@ -6,11 +6,11 @@ export const ComplaintsRepository = {
       .from('complaints')
       .select(`
         *,
-        user_profiles!user_id (
+        creator:user_profiles!complaints_user_id_fkey (
           user_id,
           username
         ),
-        user_profiles!escalated_by (
+        escalator:user_profiles!complaints_escalated_by_fkey (
           user_id,
           username
         ),
@@ -18,7 +18,7 @@ export const ComplaintsRepository = {
           id,
           content,
           created_at,
-          user_profiles!user_id (
+          author:user_profiles!replies_user_id_fkey (
             user_id,
             username
           ),
@@ -28,7 +28,7 @@ export const ComplaintsRepository = {
             status,
             selected_option,
             revealed_at,
-            user_profiles!user_id (
+            creator:user_profiles!compensations_user_id_fkey (
               user_id,
               username
             )
@@ -40,11 +40,11 @@ export const ComplaintsRepository = {
           status,
           created_at,
           resolved_at,
-          user_profiles!user_id (
+          author:user_profiles!pleas_user_id_fkey (
             user_id,
             username
           ),
-          user_profiles!resolved_by (
+          resolver:user_profiles!pleas_resolved_by_fkey (
             user_id,
             username
           )
@@ -67,7 +67,7 @@ export const ComplaintsRepository = {
       .insert([complaintWithDefaults])
       .select(`
         *,
-        user_profiles!user_id (
+        creator:user_profiles!complaints_user_id_fkey (
           user_id,
           username
         )

@@ -12,7 +12,7 @@ export const EscalationsRepository = {
       .eq('id', complaintId)
       .select(`
         *,
-        user_profiles!escalated_by (
+        escalator:user_profiles!complaints_escalated_by_fkey (
           user_id,
           username
         )
@@ -35,7 +35,7 @@ export const EscalationsRepository = {
       }])
       .select(`
         *,
-        user_profiles!user_id (
+        author:user_profiles!pleas_user_id_fkey (
           user_id,
           username
         )
@@ -57,11 +57,11 @@ export const EscalationsRepository = {
       .eq('id', pleaId)
       .select(`
         *,
-        user_profiles!user_id (
+        author:user_profiles!pleas_user_id_fkey (
           user_id,
           username
         ),
-        user_profiles!resolved_by (
+        resolver:user_profiles!pleas_resolved_by_fkey (
           user_id,
           username
         )

@@ -90,11 +90,11 @@ export class ComplaintService {
   static #transformComplaintData(complaint) {
     return {
       ...complaint,
-      user: complaint.user_profiles || {
+      user: complaint.creator || {
         user_id: complaint.user_id,
         username: complaint.user_id === '2' ? 'Vishu' : 'Sabaa'
       },
-      escalatedBy: complaint.user_profiles_escalated_by,
+      escalatedBy: complaint.escalator,
       status: complaint.status || 'pending',
       replies: (complaint.replies || []).map(reply => this.#transformReplyData(reply)),
       pleas: (complaint.pleas || []).map(plea => this.#transformPleaData(plea))
@@ -107,7 +107,7 @@ export class ComplaintService {
 
     return {
       ...reply,
-      user: reply.user_profiles || {
+      user: reply.author || {
         user_id: reply.user_id,
         username: reply.user_id === '2' ? 'Vishu' : 'Sabaa'
       },
@@ -119,7 +119,7 @@ export class ComplaintService {
   static #transformReactionData(reaction) {
     return {
       ...reaction,
-      user: reaction.user_profiles || {
+      user: reaction.creator || {
         user_id: reaction.user_id,
         username: reaction.user_id === '2' ? 'Vishu' : 'Sabaa'
       }
@@ -132,7 +132,7 @@ export class ComplaintService {
       options: Array.isArray(compensation.options) ? compensation.options : [],
       status: compensation.status || 'pending',
       selected_option: compensation.selected_option || null,
-      user: compensation.user_profiles || {
+      user: compensation.creator || {
         user_id: compensation.user_id,
         username: compensation.user_id === '2' ? 'Vishu' : 'Sabaa'
       }
@@ -142,11 +142,11 @@ export class ComplaintService {
   static #transformPleaData(plea) {
     return {
       ...plea,
-      user: plea.user_profiles || {
+      user: plea.author || {
         user_id: plea.user_id,
         username: plea.user_id === '2' ? 'Vishu' : 'Sabaa'
       },
-      resolvedBy: plea.user_profiles_resolved_by,
+      resolvedBy: plea.resolver,
       status: plea.status || 'pending'
     };
   }
