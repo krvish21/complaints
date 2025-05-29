@@ -124,23 +124,25 @@ export const useComplaints = () => {
       return;
     }
 
-    // Transform the data to include default user information
+    // Transform the data to include user information from USERS constant
     const transformedData = complaintsData.map(complaint => {
       console.log('Processing complaint:', complaint);
       const transformedComplaint = {
         ...complaint,
-        // Add default user info for the complaint
+        // Add user info for the complaint
         user: { 
-          id: complaint.user_id || 'unknown',
-          username: complaint.user_id === '2' ? 'Sabaa' : 'Vishu'
+          id: complaint.user_id,
+          username: complaint.user_id === '2' ? 'Sabaa' : 'Vishu',
+          email: complaint.user_id === '2' ? 'sabaa@example.com' : 'vishu@example.com'
         },
         // Transform reactions
         reactions: (complaint.reactions || []).map(reaction => ({
           ...reaction,
-          // Add default user info for each reaction
+          // Add user info for each reaction
           user: {
-            id: reaction.user_id || 'unknown',
-            username: reaction.user_id === '2' ? 'Sabaa' : 'Vishu'
+            id: reaction.user_id,
+            username: reaction.user_id === '2' ? 'Sabaa' : 'Vishu',
+            email: reaction.user_id === '2' ? 'sabaa@example.com' : 'vishu@example.com'
           }
         })),
         // Transform replies
@@ -159,10 +161,11 @@ export const useComplaints = () => {
 
           return {
             ...reply,
-            // Add default user info for each reply
+            // Add user info for each reply
             user: {
-              id: reply.user_id || 'unknown',
-              username: reply.user_id === '2' ? 'Sabaa' : 'Vishu'
+              id: reply.user_id,
+              username: reply.user_id === '2' ? 'Sabaa' : 'Vishu',
+              email: reply.user_id === '2' ? 'sabaa@example.com' : 'vishu@example.com'
             },
             // Set transformed compensations
             compensations: transformedCompensations,
@@ -242,11 +245,13 @@ export const useComplaints = () => {
   };
 
   const updateReaction = async (complaintId, reaction) => {
+    console.log('Updating reaction:', { complaintId, reaction, currentUser });
+    
     if (!reaction) {
       const { error } = await supabase
         .from('reactions')
         .delete()
-        .match({ complaint_id: complaintId });
+        .match({ complaint_id: complaintId, user_id: currentUser.id });
 
       if (error) {
         console.error('Error removing reaction:', error);
@@ -256,8 +261,14 @@ export const useComplaints = () => {
       const { error } = await supabase
         .from('reactions')
         .upsert(
-          { complaint_id: complaintId, reaction },
-          { onConflict: 'complaint_id' }
+          { 
+            complaint_id: complaintId, 
+            reaction,
+            user_id: currentUser.id
+          },
+          { 
+            onConflict: 'complaint_id,user_id'
+          }
         );
 
       if (error) {
@@ -265,6 +276,9 @@ export const useComplaints = () => {
         return false;
       }
     }
+
+    // Fetch updated complaints immediately
+    await fetchComplaints();
     return true;
   };
 
@@ -296,7 +310,8 @@ export const useComplaints = () => {
         .insert([{ 
           reply_id: replyId, 
           options,
-          status: 'pending'
+          status: 'pending',
+          user_id: currentUser.id
         }])
         .select();
 
