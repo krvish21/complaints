@@ -277,6 +277,13 @@ export function subscribeToComplaints(callback) {
     }, () => {
       getComplaints().then(callback);
     })
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'compensations'
+    }, () => {
+      getComplaints().then(callback);
+    })
     .subscribe();
 
   // Return cleanup function
