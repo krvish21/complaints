@@ -37,7 +37,7 @@ const FeedHeader = ({ total }) => {
   );
 };
 
-export const ComplaintFeed = ({ complaints = [], onReply, onReact, currentUser }) => {
+export const ComplaintFeed = ({ complaints = [], onReply, onReact, onAddCompensation, onRevealCompensation, currentUser }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -77,6 +77,8 @@ export const ComplaintFeed = ({ complaints = [], onReply, onReact, currentUser }
                   complaint={complaint}
                   onReply={onReply}
                   onReact={onReact}
+                  onAddCompensation={onAddCompensation}
+                  onRevealCompensation={onRevealCompensation}
                   currentUser={currentUser}
                 />
               </motion.div>
