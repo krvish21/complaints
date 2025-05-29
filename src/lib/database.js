@@ -45,35 +45,50 @@ export async function getComplaints() {
 
   if (error) throw error;
   
+  console.log('Raw complaints data:', data);
+
+  if (!data) return [];
+  
   // Transform the data to match the component's expected structure
-  return data?.map(complaint => ({
-    ...complaint,
-    user: {
-      id: complaint.user_profiles?.user_id,
-      username: complaint.user_profiles?.username
-    },
-    replies: complaint.replies?.map(reply => ({
-      ...reply,
+  return data.map(complaint => {
+    // Ensure replies is an array
+    const replies = Array.isArray(complaint.replies) ? complaint.replies : [];
+    
+    return {
+      ...complaint,
       user: {
-        id: reply.user_profiles?.user_id,
-        username: reply.user_profiles?.username
+        id: complaint.user_profiles?.user_id,
+        username: complaint.user_profiles?.username
       },
-      compensations: reply.compensations?.map(compensation => ({
-        ...compensation,
+      replies: replies.map(reply => {
+        // Ensure compensations is an array
+        const compensations = Array.isArray(reply.compensations) ? reply.compensations : [];
+        
+        return {
+          ...reply,
+          user: {
+            id: reply.user_profiles?.user_id,
+            username: reply.user_profiles?.username
+          },
+          compensations: compensations.map(compensation => ({
+            ...compensation,
+            options: Array.isArray(compensation.options) ? compensation.options : [],
+            user: {
+              id: compensation.user_profiles?.user_id,
+              username: compensation.user_profiles?.username
+            }
+          }))
+        };
+      }),
+      reactions: (complaint.reactions || []).map(reaction => ({
+        ...reaction,
         user: {
-          id: compensation.user_profiles?.user_id,
-          username: compensation.user_profiles?.username
+          id: reaction.user_profiles?.user_id,
+          username: reaction.user_profiles?.username
         }
       }))
-    })),
-    reactions: complaint.reactions?.map(reaction => ({
-      ...reaction,
-      user: {
-        id: reaction.user_profiles?.user_id,
-        username: reaction.user_profiles?.username
-      }
-    }))
-  }));
+    };
+  });
 }
 
 export async function createComplaint(complaintData) {
