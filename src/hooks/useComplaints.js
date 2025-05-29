@@ -186,35 +186,45 @@ export const useComplaints = () => {
   };
 
   const addCompensation = async (replyId, options) => {
-    // Check if a compensation already exists for this reply
-    const { data: existingCompensations, error: checkError } = await supabase
-      .from('compensations')
-      .select('id')
-      .eq('reply_id', replyId);
+    try {
+      // Check if a compensation already exists for this reply
+      const { data: existingCompensations, error: checkError } = await supabase
+        .from('compensations')
+        .select('id')
+        .eq('reply_id', replyId);
 
-    if (checkError) {
-      console.error('Error checking existing compensations:', checkError);
+      if (checkError) {
+        console.error('Error checking existing compensations:', checkError);
+        return false;
+      }
+
+      // If compensations already exist, don't add a new one
+      if (existingCompensations && existingCompensations.length > 0) {
+        console.error('Compensation already exists for this reply');
+        return false;
+      }
+
+      // Add the new compensation
+      const { error: insertError } = await supabase
+        .from('compensations')
+        .insert([{ 
+          reply_id: replyId, 
+          options,
+          status: 'pending'
+        }]);
+
+      if (insertError) {
+        console.error('Error adding compensation:', insertError);
+        return false;
+      }
+
+      // Trigger a refresh of the complaints data
+      await fetchComplaints();
+      return true;
+    } catch (error) {
+      console.error('Unexpected error in addCompensation:', error);
       return false;
     }
-
-    if (existingCompensations && existingCompensations.length > 0) {
-      console.error('Compensation already exists for this reply');
-      return false;
-    }
-
-    const { error } = await supabase
-      .from('compensations')
-      .insert([{ 
-        reply_id: replyId, 
-        options,
-        status: 'pending'
-      }]);
-
-    if (error) {
-      console.error('Error adding compensation:', error);
-      return false;
-    }
-    return true;
   };
 
   const revealCompensation = async (compensationId, selectedOption) => {
