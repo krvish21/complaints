@@ -6,10 +6,10 @@ const StatusDropdown = ({ currentStatus, onChange, theme }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const statusOptions = [
-    { value: 'pending', label: 'Pending ⏳', color: 'bg-yellow-100 text-yellow-800' },
-    { value: 'upheld', label: 'Upheld ⚠️', color: 'bg-red-100 text-red-800' },
-    { value: 'resolved', label: 'Resolved ✅', color: 'bg-green-100 text-green-800' },
-    { value: 'ok', label: 'OK 👌', color: `${theme.lightBg} ${theme.text}` }
+    { value: 'pending', label: '⏳ Pending', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'upheld', label: '⚠️ Upheld', color: 'bg-red-100 text-red-800' },
+    { value: 'resolved', label: '✅ Resolved', color: 'bg-green-100 text-green-800' },
+    { value: 'ok', label: '👌 OK', color: `${theme.lightBg} ${theme.text}` }
   ];
 
   const currentOption = statusOptions.find(opt => opt.value === currentStatus) || statusOptions[0];
@@ -19,15 +19,15 @@ const StatusDropdown = ({ currentStatus, onChange, theme }) => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
-          flex items-center justify-between gap-2 px-4 py-2 rounded-lg
+          flex items-center justify-between gap-2 px-3 py-1.5 rounded-full text-xs
           border ${theme.border} ${theme.lightBg} ${theme.text}
           hover:bg-gray-50 transition-colors duration-200
-          min-w-[140px]
+          min-w-[110px]
         `}
       >
         <span>{currentOption.label}</span>
         <svg 
-          className={`w-4 h-4 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-3 h-3 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -58,7 +58,7 @@ const StatusDropdown = ({ currentStatus, onChange, theme }) => {
                       setIsOpen(false);
                     }}
                     className={`
-                      w-full px-4 py-2 text-left text-sm
+                      w-full px-3 py-1.5 text-left text-xs
                       hover:bg-gray-50 transition-colors duration-200
                       ${option.color}
                       ${currentStatus === option.value ? 'font-medium' : ''}

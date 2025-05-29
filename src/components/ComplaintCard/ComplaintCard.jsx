@@ -446,7 +446,8 @@ export const ComplaintCard = ({
       animate={{ opacity: 1, y: 0 }}
       className={`p-6 rounded-xl shadow-lg mb-4 ${theme.bg}`}
     >
-      <div className="flex items-start justify-between">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
           <UserBadge username={complaint.user.username} isAuthor theme={theme} />
           <span className="text-2xl">{complaint.mood}</span>
@@ -454,56 +455,78 @@ export const ComplaintCard = ({
         <div className="flex items-center gap-2">
           <CategoryBadge category={complaint.category} theme={theme} />
           <SeverityBadge severity={complaint.severity} theme={theme} />
+        </div>
+      </div>
+
+      {/* Title */}
+      <h3 className={`text-xl font-semibold ${theme.accent} mb-2`}>
+        {complaint.title}
+      </h3>
+
+      {/* Content */}
+      <div className="space-y-4">
+        <p className={`text-base ${theme.text}`}>{complaint.content}</p>
+        
+        <div className="flex items-center justify-between text-sm text-gray-500">
+          <span>{format(new Date(complaint.created_at), 'MMM d, yyyy h:mm a')}</span>
           <StatusBadge status={complaint.status} theme={theme} />
         </div>
       </div>
 
-      <p className={`mt-4 text-lg ${theme.text}`}>{complaint.content}</p>
-
-      <div className="mt-4 text-sm text-gray-500">
-        {format(new Date(complaint.created_at), 'MMM d, yyyy h:mm a')}
+      {/* Pleas Section */}
+      <div className="mt-4">
+        <EscalationControls
+          complaint={complaint}
+          onEscalate={onEscalate}
+          onCreatePlea={onCreatePlea}
+          onResolvePlea={onResolvePlea}
+          theme={theme}
+        />
       </div>
 
-      <EscalationControls
-        complaint={complaint}
-        onEscalate={onEscalate}
-        onCreatePlea={onCreatePlea}
-        onResolvePlea={onResolvePlea}
-        theme={theme}
-      />
-
       {/* Replies Section */}
-      <div className={`mt-4 border-t ${theme.border} bg-gray-50`}>
+      <div className={`mt-4 border-t ${theme.border}`}>
         <div className="p-3">
-          <div className="flex items-center justify-end gap-4">
-            <button
-              onClick={() => setShowReplies(!showReplies)}
-              className={`text-xs ${theme.accent} hover:underline flex items-center gap-1`}
-            >
-              {replyCount > 0 ? (
-                <>
-                  {replyCount} {replyCount === 1 ? 'thought' : 'thoughts'}
-                  <svg
-                    className={`w-3 h-3 transform transition-transform ${showReplies ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </>
-              ) : (
-                'Share your thoughts'
-              )}
-            </button>
-            {!isReplying && (
-              <button
-                onClick={() => setIsReplying(true)}
-                className={`text-xs ${theme.accent} hover:underline`}
-              >
-                Reply
-              </button>
+          <div className="flex items-center justify-between">
+            {isSabaa && (
+              <div className="flex-1">
+                <StatusDropdown 
+                  currentStatus={complaint.status}
+                  onChange={(status) => onEscalate(complaint.id, status)}
+                  theme={theme}
+                />
+              </div>
             )}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setShowReplies(!showReplies)}
+                className={`text-xs ${theme.accent} hover:underline flex items-center gap-1`}
+              >
+                {replyCount > 0 ? (
+                  <>
+                    {replyCount} {replyCount === 1 ? 'thought' : 'thoughts'}
+                    <svg
+                      className={`w-3 h-3 transform transition-transform ${showReplies ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </>
+                ) : (
+                  'Share your thoughts'
+                )}
+              </button>
+              {!isReplying && (
+                <button
+                  onClick={() => setIsReplying(true)}
+                  className={`text-xs ${theme.accent} hover:underline`}
+                >
+                  Reply
+                </button>
+              )}
+            </div>
           </div>
 
           <AnimatePresence>
