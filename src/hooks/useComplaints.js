@@ -74,17 +74,17 @@ export const useComplaints = () => {
       .from('complaints')
       .select(`
         *,
-        user:user_profiles(id, username),
+        user_profiles!complaints_user_id_fkey(user_id, username),
         reactions(
           id,
           reaction,
-          user:user_profiles(id, username)
+          user_profiles!reactions_user_id_fkey(user_id, username)
         ),
         replies(
           id,
           content,
           created_at,
-          user:user_profiles(id, username),
+          user_profiles!replies_user_id_fkey(user_id, username),
           compensations(
             id,
             status,
