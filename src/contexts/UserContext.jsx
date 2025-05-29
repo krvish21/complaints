@@ -17,12 +17,24 @@ const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [user, setUserState] = useState(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    return savedUser ? JSON.parse(savedUser) : USERS.VISHU;
+    try {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        // Validate the saved user data
+        if (Object.values(USERS).some(u => u.id === parsed.id)) {
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.error('Error reading user from localStorage:', error);
+    }
+    // Default to Sabaa if no valid saved user
+    return USERS.SABAA;
   });
 
-  const setUser = (userKey) => {
-    const newUser = USERS[userKey];
+  const setUser = (userType) => {
+    const newUser = USERS[userType];
     setUserState(newUser);
     localStorage.setItem('currentUser', JSON.stringify(newUser));
     console.log('User switched to:', newUser);
