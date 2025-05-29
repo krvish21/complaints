@@ -2,6 +2,8 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ComplaintCard } from '../ComplaintCard/ComplaintCard';
 import { moodThemes } from '../../lib/themes';
+import { useComplaints } from '../../hooks/useComplaints';
+import { useUser } from '../../contexts/UserContext';
 
 const NoComplaints = () => {
   const theme = moodThemes['😢'];
@@ -37,7 +39,42 @@ const FeedHeader = ({ total }) => {
   );
 };
 
-export const ComplaintFeed = ({ complaints = [], onReply, onReact, onAddCompensation, onRevealCompensation, currentUser }) => {
+export const ComplaintFeed = () => {
+  const { 
+    complaints, 
+    addReply, 
+    escalateComplaint,
+    createPlea,
+    resolvePlea,
+    addCompensation, 
+    revealCompensation 
+  } = useComplaints();
+  const { user: currentUser } = useUser();
+
+  const handleReply = async (complaintId, content) => {
+    return await addReply(complaintId, content);
+  };
+
+  const handleEscalate = async (complaintId, status) => {
+    return await escalateComplaint(complaintId, status);
+  };
+
+  const handleCreatePlea = async (complaintId, content) => {
+    return await createPlea(complaintId, content);
+  };
+
+  const handleResolvePlea = async (pleaId, status) => {
+    return await resolvePlea(pleaId, status);
+  };
+
+  const handleAddCompensation = async (replyId, options) => {
+    return await addCompensation(replyId, options);
+  };
+
+  const handleRevealCompensation = async (compensationId, selectedOption) => {
+    return await revealCompensation(compensationId, selectedOption);
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -75,11 +112,13 @@ export const ComplaintFeed = ({ complaints = [], onReply, onReact, onAddCompensa
               >
                 <ComplaintCard
                   complaint={complaint}
-                  onReply={onReply}
-                  onReact={onReact}
-                  onAddCompensation={onAddCompensation}
-                  onRevealCompensation={onRevealCompensation}
                   currentUser={currentUser}
+                  onReply={handleReply}
+                  onEscalate={handleEscalate}
+                  onCreatePlea={handleCreatePlea}
+                  onResolvePlea={handleResolvePlea}
+                  onAddCompensation={handleAddCompensation}
+                  onRevealCompensation={handleRevealCompensation}
                 />
               </motion.div>
             ))}

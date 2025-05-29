@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { moodThemes } from '../../lib/themes';
 import { CompensationPopup } from '../CompensationPopup/CompensationPopup';
 import { ScratchCard } from '../ScratchCard/ScratchCard';
+import { EscalationControls } from '../EscalationControls/EscalationControls';
 import { useUser } from '../../contexts/UserContext';
 
 export const moods = ['😊', '😢', '😡', '🥺', '💔', '😤', '🙄', '😒'];
@@ -61,6 +62,31 @@ const Toast = ({ message, type = 'primary', theme }) => {
     >
       {message}
     </motion.div>
+  );
+};
+
+const StatusBadge = ({ status, theme }) => {
+  const statusStyles = {
+    pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    upheld: 'bg-red-100 text-red-800 border-red-200',
+    resolved: 'bg-green-100 text-green-800 border-green-200',
+    ok: `${theme.lightBg} ${theme.text} ${theme.border}`
+  };
+
+  const statusIcons = {
+    pending: '⏳',
+    upheld: '⚠️',
+    resolved: '✅',
+    ok: '👌'
+  };
+
+  return (
+    <span className={`
+      px-2 py-0.5 rounded-full text-xs font-medium border
+      ${statusStyles[status] || statusStyles.pending}
+    `}>
+      {statusIcons[status]} {status}
+    </span>
   );
 };
 
@@ -372,7 +398,16 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   );
 };
 
-export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, onRevealCompensation, currentUser }) => {
+export const ComplaintCard = ({ 
+  complaint, 
+  onReply, 
+  onEscalate,
+  onCreatePlea,
+  onResolvePlea,
+  onAddCompensation, 
+  onRevealCompensation, 
+  currentUser 
+}) => {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [showReplies, setShowReplies] = useState(false);
@@ -421,69 +456,35 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
 
   return (
     <motion.div
-      className={`rounded-xl shadow-lg border ${theme.border} overflow-hidden bg-white`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      className={`p-6 rounded-xl shadow-lg mb-4 ${theme.bg}`}
     >
-      {/* Header Section */}
-      <div className={`p-3 border-b ${theme.border} bg-gradient-to-br ${theme.gradient} bg-opacity-5`}>
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xl shrink-0">{complaint.mood}</span>
-              <h3 className={`text-base font-semibold ${theme.accent} break-words`}>
-                {complaint.title}
-              </h3>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              <SeverityBadge severity={complaint.severity} theme={theme} />
-              <CategoryBadge category={complaint.category} theme={theme} />
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-            <UserBadge 
-              username={complaint.user.username} 
-              isAuthor={complaint.user.user_id === currentUser?.user_id} 
-              theme={theme} 
-            />
-            <span>•</span>
-            <span>{format(new Date(complaint.created_at), 'MMM d • h:mm a')}</span>
-          </div>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          <UserBadge username={complaint.user.username} isAuthor theme={theme} />
+          <span className="text-2xl">{complaint.mood}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <CategoryBadge category={complaint.category} theme={theme} />
+          <SeverityBadge severity={complaint.severity} theme={theme} />
+          <StatusBadge status={complaint.status} theme={theme} />
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="p-3">
-        <p className={`${theme.text} text-sm whitespace-pre-wrap mb-4`}>{complaint.description}</p>
+      <p className={`mt-4 text-lg ${theme.text}`}>{complaint.content}</p>
 
-        {/* Reactions Section */}
-        <div className="flex items-center gap-3">
-          <select
-            className={`appearance-none ${theme.lightBg} ${theme.hover} transition-colors rounded-full px-3 py-1 text-xs cursor-pointer focus:outline-none focus:ring-2 ring-offset-2 ${theme.border}`}
-            value={complaint.userReaction || ''}
-            onChange={(e) => onReact(complaint.id, e.target.value)}
-          >
-            <option value="">React...</option>
-            {moods.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-          <div className="flex gap-0.5">
-            {complaint.reactions?.map((r, index) => (
-              <motion.span
-                key={index}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                title={r.user.username}
-                className="text-lg"
-              >
-                {r.reaction}
-              </motion.span>
-            ))}
-          </div>
-        </div>
+      <div className="mt-4 text-sm text-gray-500">
+        {format(new Date(complaint.created_at), 'MMM d, yyyy h:mm a')}
       </div>
+
+      <EscalationControls
+        complaint={complaint}
+        onEscalate={onEscalate}
+        onCreatePlea={onCreatePlea}
+        onResolvePlea={onResolvePlea}
+        theme={theme}
+      />
 
       {/* Replies Section */}
       <div className={`border-t ${theme.border} bg-gray-50`}>
