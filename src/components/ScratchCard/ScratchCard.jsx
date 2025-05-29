@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme }) => {
+export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disabled = false }) => {
   const [revealed, setRevealed] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
   const canvasRef = useRef(null);
   const [scratchPercentage, setScratchPercentage] = useState(0);
+  const option = options[0]; // Since we're now passing a single option
 
   useEffect(() => {
-    if (!isOpen || !canvasRef.current) return;
+    if (!isOpen || !canvasRef.current || disabled) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -29,8 +30,6 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme }) => {
     let isDrawing = false;
     let lastX = 0;
     let lastY = 0;
-    let scratchedPixels = 0;
-    const totalPixels = canvas.width * canvas.height;
 
     const calculateScratchPercentage = (imgData) => {
       let transparent = 0;
@@ -41,7 +40,7 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme }) => {
     };
 
     const draw = (e) => {
-      if (!isDrawing) return;
+      if (!isDrawing || disabled) return;
       
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -65,17 +64,17 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme }) => {
 
       if (percentage > 50 && !revealed) {
         setRevealed(true);
-        // Randomly select an option
-        const randomOption = options[Math.floor(Math.random() * options.length)];
-        setSelectedOption(randomOption);
+        setSelectedOption(option);
       }
     };
 
     canvas.addEventListener('mousedown', (e) => {
-      isDrawing = true;
-      const rect = canvas.getBoundingClientRect();
-      lastX = e.clientX - rect.left;
-      lastY = e.clientY - rect.top;
+      if (!disabled) {
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        lastX = e.clientX - rect.left;
+        lastY = e.clientY - rect.top;
+      }
     });
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', () => isDrawing = false);
@@ -87,74 +86,41 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme }) => {
       canvas.removeEventListener('mouseup', () => {});
       canvas.removeEventListener('mouseleave', () => {});
     };
-  }, [isOpen]);
+  }, [isOpen, disabled]);
 
   const handleSubmit = () => {
     if (selectedOption) {
       onReveal(selectedOption);
-      onClose();
     }
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
+    <div className={`relative aspect-video rounded-lg overflow-hidden ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+      <canvas
+        ref={canvasRef}
+        className={`w-full h-full rounded-lg ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+      />
+      {revealed && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={onClose}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute inset-0 flex items-center justify-center bg-white rounded-lg"
         >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl"
-            onClick={e => e.stopPropagation()}
-          >
-            <h3 className={`text-xl font-semibold ${theme.accent} mb-4`}>
-              Reveal Your Compensation! ✨
-            </h3>
-            
-            <div className="relative aspect-video mb-4">
-              <canvas
-                ref={canvasRef}
-                className="w-full h-full rounded-lg cursor-pointer"
-              />
-              {revealed && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="absolute inset-0 flex items-center justify-center bg-white rounded-lg"
-                >
-                  <div className={`text-xl ${theme.accent} text-center p-4`}>
-                    {selectedOption} 🎉
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={!revealed}
-                className={`px-4 py-2 ${revealed ? theme.primary : 'bg-gray-300'} text-white rounded-lg text-sm shadow-md`}
-              >
-                Accept Compensation
-              </button>
-            </div>
-          </motion.div>
+          <div className={`text-xl ${theme.accent} text-center p-4`}>
+            {option} 🎉
+          </div>
         </motion.div>
       )}
-    </AnimatePresence>
+      {revealed && !disabled && (
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={handleSubmit}
+          className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 ${theme.primary} text-white rounded-lg text-sm shadow-md`}
+        >
+          Select This One!
+        </motion.button>
+      )}
+    </div>
   );
 }; 

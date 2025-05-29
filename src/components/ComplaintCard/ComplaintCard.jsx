@@ -44,7 +44,7 @@ const UserBadge = ({ username, isAuthor, theme }) => (
 
 const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensation }) => {
   const [showCompensationPopup, setShowCompensationPopup] = useState(false);
-  const [showScratchCard, setShowScratchCard] = useState(false);
+  const [showScratchCards, setShowScratchCards] = useState(false);
   const isVishu = currentUser?.name === 'Vishu';
   const isSabaa = currentUser?.name === 'Sabaa';
   const compensation = reply.compensations?.[0];
@@ -57,6 +57,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
 
   const handleCompensationReveal = (selectedOption) => {
     onRevealCompensation(compensation.id, selectedOption);
+    setShowScratchCards(false);
   };
 
   return (
@@ -84,7 +85,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
 
           {(canShowCompensation || canRevealCompensation) && (
             <button
-              onClick={() => canShowCompensation ? setShowCompensationPopup(true) : setShowScratchCard(true)}
+              onClick={() => canShowCompensation ? setShowCompensationPopup(true) : setShowScratchCards(true)}
               className={`ml-2 text-sm ${theme.accent} hover:underline opacity-0 group-hover:opacity-100 transition-opacity`}
             >
               {canShowCompensation ? '+ Add Compensation' : '🎁 Reveal Compensation'}
@@ -100,13 +101,51 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
         theme={theme}
       />
 
-      <ScratchCard
-        isOpen={showScratchCard}
-        onClose={() => setShowScratchCard(false)}
-        options={compensation?.options || []}
-        onReveal={handleCompensationReveal}
-        theme={theme}
-      />
+      {/* Show all options as scratch cards */}
+      <AnimatePresence>
+        {showScratchCards && compensation?.options && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            onClick={() => setShowScratchCards(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl p-6 w-full max-w-4xl shadow-xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className={`text-xl font-semibold ${theme.accent} mb-6`}>
+                Choose a Compensation to Reveal! ✨
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {compensation.options.map((option, index) => (
+                  <ScratchCard
+                    key={index}
+                    isOpen={true}
+                    onClose={() => {}}
+                    options={[option]}
+                    onReveal={handleCompensationReveal}
+                    theme={theme}
+                    disabled={compensation.status === 'revealed'}
+                  />
+                ))}
+              </div>
+              <div className="mt-6 text-center">
+                <button
+                  onClick={() => setShowScratchCards(false)}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
