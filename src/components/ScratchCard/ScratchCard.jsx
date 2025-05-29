@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disabled = false }) => {
+export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disabled = false, firstRevealed = false }) => {
   const [revealed, setRevealed] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
   const canvasRef = useRef(null);
   const [scratchPercentage, setScratchPercentage] = useState(0);
-  const option = options[0]; // Since we're now passing a single option
+  const option = options[0];
 
   useEffect(() => {
     if (!isOpen || !canvasRef.current || disabled) return;
@@ -22,10 +22,10 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disable
     // Draw scratch layer
     ctx.fillStyle = theme.secondary;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.font = '20px Arial';
+    ctx.font = '16px Arial';
     ctx.fillStyle = theme.text;
     ctx.textAlign = 'center';
-    ctx.fillText('Scratch here! 🎁', canvas.width / 2, canvas.height / 2);
+    ctx.fillText('Scratch!', canvas.width / 2, canvas.height / 2);
 
     let isDrawing = false;
     let lastX = 0;
@@ -47,7 +47,7 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disable
       const y = e.clientY - rect.top;
 
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = 40;
+      ctx.lineWidth = 30; // Smaller scratch width
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(lastX, lastY);
@@ -95,7 +95,7 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disable
   };
 
   return (
-    <div className={`relative aspect-video rounded-lg overflow-hidden ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+    <div className={`relative aspect-square rounded-lg overflow-hidden ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
       <canvas
         ref={canvasRef}
         className={`w-full h-full rounded-lg ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
@@ -106,19 +106,19 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disable
           animate={{ opacity: 1, scale: 1 }}
           className="absolute inset-0 flex items-center justify-center bg-white rounded-lg"
         >
-          <div className={`text-xl ${theme.accent} text-center p-4`}>
+          <div className={`text-base ${theme.accent} text-center p-2`}>
             {option} 🎉
           </div>
         </motion.div>
       )}
-      {revealed && !disabled && (
+      {revealed && !disabled && firstRevealed && (
         <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           onClick={handleSubmit}
-          className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 ${theme.primary} text-white rounded-lg text-sm shadow-md`}
+          className={`absolute bottom-2 left-1/2 transform -translate-x-1/2 px-3 py-1 ${theme.primary} text-white rounded-lg text-xs shadow-md`}
         >
-          Select This One!
+          Select!
         </motion.button>
       )}
     </div>

@@ -12,8 +12,8 @@ const NoComplaints = () => {
       className={`text-center py-12 px-4 ${theme.lightBg} rounded-2xl border ${theme.border} shadow-lg`}
     >
       <div className="text-4xl mb-4">💭</div>
-      <h3 className={`text-xl font-bold ${theme.accent} mb-2`}>No Posts Yet</h3>
-      <p className={`${theme.text}`}>Be the first to share what's on your mind!</p>
+      <h3 className={`text-xl font-bold ${theme.accent} mb-2`}>All quiet here</h3>
+      <p className={`${theme.text}`}>Start the conversation...</p>
     </motion.div>
   );
 };
@@ -27,9 +27,9 @@ const FeedHeader = ({ total }) => {
       animate={{ opacity: 1, y: 0 }}
     >
       <div>
-        <h2 className={`text-2xl font-bold ${theme.accent}`}>Relationship Feed</h2>
+        <h2 className={`text-2xl font-bold ${theme.accent}`}>Our Space</h2>
         <p className={`text-sm ${theme.text} mt-1`}>
-          {total} {total === 1 ? 'post' : 'posts'} shared
+          {total} {total === 1 ? 'note' : 'notes'} shared
         </p>
       </div>
       <div className="text-3xl">💭</div>

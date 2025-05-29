@@ -18,8 +18,8 @@ const Header = () => {
       <div className="max-w-xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Grievance Box 📮</h1>
-            <p className="text-sm text-gray-500 mt-1">Share your thoughts and feelings</p>
+            <h1 className="text-2xl font-bold text-gray-900">Love Notes 💌</h1>
+            <p className="text-sm text-gray-500 mt-1">A safe space for us</p>
           </div>
         </div>
         <div className="flex items-center gap-6">
@@ -87,7 +87,7 @@ const App = () => {
         />
       </MainContent>
       <footer className="text-center py-6 text-sm text-gray-500">
-        <p>Made with ❤️ for expressing feelings</p>
+        <p>Made with love, for love 💕</p>
       </footer>
     </div>
   );

@@ -15,14 +15,14 @@ const SeverityBadge = ({ severity, theme }) => {
   };
 
   const labels = {
-    low: 'Minor Issue ' + theme.emoji,
-    medium: 'Need to Talk ' + theme.emoji,
-    high: 'Serious Problem ' + theme.emoji
+    low: 'Just saying ' + theme.emoji,
+    medium: 'We should talk ' + theme.emoji,
+    high: 'Important ' + theme.emoji
   };
 
   return (
     <span className={`px-3 py-1 rounded-full text-sm ${severityColors[severity] || severityColors.low}`}>
-      {labels[severity] || 'Minor Issue'}
+      {labels[severity] || 'Just saying'}
     </span>
   );
 };
@@ -88,7 +88,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
               onClick={() => canShowCompensation ? setShowCompensationPopup(true) : setShowScratchCards(true)}
               className={`ml-2 text-sm ${theme.accent} hover:underline opacity-0 group-hover:opacity-100 transition-opacity`}
             >
-              {canShowCompensation ? '+ Add Compensation' : '🎁 Reveal Compensation'}
+              {canShowCompensation ? '+ Make it up to you' : '🎁 Open your surprise'}
             </button>
           )}
         </div>
@@ -119,10 +119,12 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
               onClick={e => e.stopPropagation()}
             >
               <h3 className={`text-xl font-semibold ${theme.accent} mb-6`}>
-                Choose a Compensation to Reveal! ✨
+                Pick your surprise! 🎁
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {compensation.options.map((option, index) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                {[...compensation.options]
+                  .sort(() => Math.random() - 0.5)
+                  .map((option, index) => (
                   <ScratchCard
                     key={index}
                     isOpen={true}
@@ -131,6 +133,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
                     onReveal={handleCompensationReveal}
                     theme={theme}
                     disabled={compensation.status === 'revealed'}
+                    firstRevealed={index === 0}
                   />
                 ))}
               </div>
@@ -242,7 +245,7 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
               onClick={() => setShowReplies(!showReplies)}
               className={`text-sm ${theme.accent} hover:underline flex items-center gap-1`}
             >
-              {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
+              {replyCount} {replyCount === 1 ? 'thought' : 'thoughts'}
               <svg
                 className={`w-4 h-4 transform transition-transform ${showReplies ? 'rotate-180' : ''}`}
                 fill="none"

@@ -42,59 +42,58 @@ export const CompensationPopup = ({ isOpen, onClose, onSubmit, theme }) => {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl"
+            className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl"
             onClick={e => e.stopPropagation()}
           >
-            <h3 className={`text-xl font-semibold ${theme.accent} mb-4`}>
-              Add Compensation Options 🎁
+            <h3 className={`text-xl font-semibold ${theme.accent} mb-6`}>
+              Make it up to Sabaa 🎁
             </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <p className={`text-sm ${theme.text} mb-4`}>
+              Add up to 5 sweet gestures for Sabaa to choose from
+            </p>
+            <div className="space-y-4">
               {options.map((option, index) => (
                 <div key={index} className="flex gap-2">
                   <input
                     type="text"
                     value={option}
                     onChange={(e) => handleOptionChange(index, e.target.value)}
-                    placeholder="Enter a compensation option..."
-                    className={`flex-1 p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400`}
+                    placeholder="Something sweet..."
+                    className={`flex-1 p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text}`}
                   />
-                  {options.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveOption(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      ✕
-                    </button>
-                  )}
+                  <button
+                    onClick={() => handleRemoveOption(index)}
+                    className={`p-2 text-red-500 hover:text-red-700`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
               ))}
-              
-              <div className="flex justify-between">
+              {options.length < 5 && (
                 <button
-                  type="button"
                   onClick={handleAddOption}
-                  className={`text-sm ${theme.accent} hover:underline`}
+                  className={`w-full p-2 text-sm ${theme.lightBg} ${theme.text} rounded-lg border ${theme.border} hover:bg-gray-50`}
                 >
-                  + Add Another Option
+                  + Add another sweet gesture
                 </button>
-                <div className="space-x-2">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm shadow-md`}
-                  >
-                    Submit Compensation
-                  </button>
-                </div>
-              </div>
-            </form>
+              )}
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm shadow-md`}
+              >
+                Save surprises
+              </button>
+            </div>
           </motion.div>
         </motion.div>
       )}
