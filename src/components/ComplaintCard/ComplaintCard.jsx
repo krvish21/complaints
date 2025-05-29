@@ -44,17 +44,17 @@ const Reply = ({ reply, currentUser, theme }) => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className="flex items-start gap-2 text-sm"
+    className="flex items-center justify-end gap-2 text-sm group"
   >
-    <div className={`flex-1 ${theme.text}`}>
+    <div className={`flex items-center gap-2 max-w-[85%] ${theme.text}`}>
+      <span className="text-xs text-gray-400 group-hover:opacity-100 opacity-50">
+        {format(new Date(reply.created_at), 'h:mm a')}
+      </span>
+      <span className="mx-1 text-gray-300">•</span>
       <span className={`font-medium ${reply.user.id === currentUser?.id ? theme.accent : 'text-gray-700'}`}>
-        {reply.user.username}
+        {reply.user.username}:
       </span>
-      <span className="mx-2 text-gray-400">•</span>
-      <span className="text-gray-600">{reply.content}</span>
-      <span className="ml-2 text-xs text-gray-400">
-        {format(new Date(reply.created_at), 'MMM d, h:mm a')}
-      </span>
+      <span className="text-gray-600 break-words">{reply.content}</span>
     </div>
   </motion.div>
 );
@@ -182,7 +182,7 @@ export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
           >
             {/* Existing Replies */}
             {showReplies && complaint.replies?.length > 0 && (
-              <div className={`mt-4 space-y-2 pt-3 border-t ${theme.border}`}>
+              <div className={`mt-4 space-y-1.5 pt-3 border-t ${theme.border}`}>
                 {complaint.replies.map((reply) => (
                   <Reply key={reply.id} reply={reply} currentUser={currentUser} theme={theme} />
                 ))}
@@ -195,13 +195,15 @@ export const ComplaintCard = ({ complaint, onReply, onReact, currentUser }) => {
                 onSubmit={handleSubmitReply}
                 className={`mt-4 flex gap-2 items-center pt-3 ${showReplies ? '' : `border-t ${theme.border}`}`}
               >
-                <input
-                  type="text"
-                  value={replyContent}
-                  onChange={(e) => setReplyContent(e.target.value)}
-                  placeholder="Write a reply..."
-                  className={`flex-1 p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400`}
-                />
+                <div className="flex-1 flex justify-end">
+                  <input
+                    type="text"
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    placeholder="Write a reply..."
+                    className={`w-[85%] p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400`}
+                  />
+                </div>
                 <motion.button
                   type="submit"
                   whileHover={{ scale: 1.05 }}
