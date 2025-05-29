@@ -77,20 +77,20 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     compensations: reply.compensations
   });
 
-  // Check if the reply is from Sabaa (user_id === '2')
+  // User role checks
   const isReplyFromSabaa = reply.user.id === '2';
   const isVishu = currentUser?.id === '1';
   const isSabaa = currentUser?.id === '2';
   const compensation = reply.compensations?.[0];
   
-  // More specific compensation checks
+  // Compensation state checks
   const hasExistingCompensation = reply.compensations && reply.compensations.length > 0;
-  // Only show compensation button if:
-  // 1. Current user is Vishu
-  // 2. The reply is from Sabaa
-  // 3. There's no existing compensation
+  const isPendingCompensation = compensation?.status === 'pending';
+  const isRevealedCompensation = compensation?.status === 'revealed';
+
+  // Permission checks
   const canShowCompensation = isVishu && isReplyFromSabaa && !hasExistingCompensation;
-  const canRevealCompensation = isSabaa && compensation?.status === 'pending';
+  const canRevealCompensation = isSabaa && isPendingCompensation;
 
   // Debug logging for visibility conditions
   console.log('Compensation visibility:', {
@@ -98,6 +98,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     isSabaa,
     isReplyFromSabaa,
     hasExistingCompensation,
+    isPendingCompensation,
     canShowCompensation,
     canRevealCompensation,
     compensation
@@ -115,18 +116,35 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
       hasExistingCompensation
     });
 
+    if (!isReplyFromSabaa) {
+      showToast("Compensations can only be added to Sabaa's replies! 💝", 'warning');
+      return;
+    }
+
     if (canShowCompensation) {
       setShowCompensationPopup(true);
     } else if (canRevealCompensation) {
       setShowScratchCards(true);
     } else if (isVishu && hasExistingCompensation) {
       showToast("You've already added some sweet surprises! 🎁 Let Sabaa pick one first! 💝", 'warning');
+    } else if (isSabaa && isRevealedCompensation) {
+      showToast("You've already revealed this surprise! 🎁", 'info');
     }
   };
 
   const handleCompensationSubmit = async (options) => {
     if (!isVishu) {
       showToast('Only Vishu can add compensations! 🤗', 'warning');
+      return;
+    }
+
+    if (!isReplyFromSabaa) {
+      showToast("Compensations can only be added to Sabaa's replies! 💝", 'warning');
+      return;
+    }
+
+    if (hasExistingCompensation) {
+      showToast("This reply already has a compensation! 🎁", 'warning');
       return;
     }
 
@@ -144,6 +162,11 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   const handleCompensationReveal = async (selectedOption) => {
     if (!isSabaa) {
       showToast('Only Sabaa can reveal compensations! 🤗', 'warning');
+      return;
+    }
+
+    if (!isPendingCompensation) {
+      showToast('This compensation has already been revealed! 🎁', 'warning');
       return;
     }
 
@@ -199,10 +222,18 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
       );
     }
 
-    if (isVishu && hasExistingCompensation) {
+    if (isVishu && hasExistingCompensation && isPendingCompensation) {
       return (
         <span className={`text-xs font-medium text-gray-500`}>
           Waiting for Sabaa to pick a surprise 🎁
+        </span>
+      );
+    }
+
+    if (isRevealedCompensation) {
+      return (
+        <span className={`text-xs font-medium text-gray-500`}>
+          Surprise revealed! 🎉
         </span>
       );
     }
