@@ -78,7 +78,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   });
 
   // User role checks
-  const isReplyFromSabaa = reply.user.id === '2';
+  const isReplyFromSabaa = reply.user?.id === '2';
   const isVishu = currentUser?.id === '1';
   const isSabaa = currentUser?.id === '2';
   const compensation = reply.compensations?.[0];
@@ -101,7 +101,9 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     isPendingCompensation,
     canShowCompensation,
     canRevealCompensation,
-    compensation
+    compensation,
+    replyUserId: reply.user?.id,
+    currentUserId: currentUser?.id
   });
 
   const showToast = (message, type = 'primary') => {
@@ -113,7 +115,9 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     console.log('Compensation button clicked:', {
       canShowCompensation,
       canRevealCompensation,
-      hasExistingCompensation
+      hasExistingCompensation,
+      replyUserId: reply.user?.id,
+      currentUserId: currentUser?.id
     });
 
     if (!isReplyFromSabaa) {
@@ -148,7 +152,13 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
       return;
     }
 
-    console.log('Submitting compensation:', { replyId: reply.id, options });
+    console.log('Submitting compensation:', { 
+      replyId: reply.id, 
+      options,
+      replyUserId: reply.user?.id,
+      currentUserId: currentUser?.id
+    });
+    
     const success = await onAddCompensation(reply.id, options);
     
     if (success) {
@@ -170,7 +180,13 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
       return;
     }
 
-    console.log('Revealing compensation:', { compensationId: compensation?.id, selectedOption });
+    console.log('Revealing compensation:', { 
+      compensationId: compensation?.id, 
+      selectedOption,
+      replyUserId: reply.user?.id,
+      currentUserId: currentUser?.id
+    });
+
     if (!compensation?.id) {
       console.error('No compensation ID found');
       showToast('Oops! Something went wrong. Please try again! 🙈', 'warning');
@@ -197,7 +213,9 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     console.log('Rendering compensation button:', {
       canShowCompensation,
       canRevealCompensation,
-      hasExistingCompensation
+      hasExistingCompensation,
+      replyUserId: reply.user?.id,
+      currentUserId: currentUser?.id
     });
 
     if (canShowCompensation) {

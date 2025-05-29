@@ -124,7 +124,7 @@ export const useComplaints = () => {
       return;
     }
 
-    // Transform the data to include user information from USERS constant
+    // Transform the data to include user information
     const transformedData = complaintsData.map(complaint => {
       console.log('Processing complaint:', complaint);
       const transformedComplaint = {
@@ -159,7 +159,8 @@ export const useComplaints = () => {
             selected_option: comp.selected_option || null
           }));
 
-          return {
+          // Create the transformed reply
+          const transformedReply = {
             ...reply,
             // Add user info for each reply
             user: {
@@ -171,6 +172,9 @@ export const useComplaints = () => {
             compensations: transformedCompensations,
             hasCompensation: transformedCompensations.length > 0
           };
+
+          console.log('Transformed reply:', transformedReply);
+          return transformedReply;
         })
       };
 
