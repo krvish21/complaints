@@ -43,7 +43,18 @@ export const useComplaints = () => {
 
   const addReply = async (complaintId, content) => {
     try {
-      await dbAddReply(complaintId, content, user.id);
+      const newReply = await dbAddReply(complaintId, content, user.id);
+      
+      // Update local state immediately for better UX
+      setComplaints(prevComplaints => prevComplaints.map(complaint => {
+        if (complaint.id === complaintId) {
+          return {
+            ...complaint,
+            replies: [...(complaint.replies || []), newReply]
+          };
+        }
+        return complaint;
+      }));
     } catch (error) {
       console.error('Error adding reply:', error);
       throw error;
@@ -53,11 +64,24 @@ export const useComplaints = () => {
   const updateReaction = async (complaintId, reaction) => {
     try {
       if (!reaction) {
-        // If no reaction is provided, we could implement a delete function
-        // For now, we'll just skip empty reactions
         return;
       }
-      await dbAddReaction(complaintId, reaction, user.id);
+      const newReaction = await dbAddReaction(complaintId, reaction, user.id);
+      
+      // Update local state immediately for better UX
+      setComplaints(prevComplaints => prevComplaints.map(complaint => {
+        if (complaint.id === complaintId) {
+          // Remove existing reaction from this user if it exists
+          const filteredReactions = (complaint.reactions || [])
+            .filter(r => r.user_id !== user.id);
+          
+          return {
+            ...complaint,
+            reactions: [...filteredReactions, newReaction]
+          };
+        }
+        return complaint;
+      }));
     } catch (error) {
       console.error('Error updating reaction:', error);
       throw error;
