@@ -68,11 +68,33 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   const [showScratchCards, setShowScratchCards] = useState(false);
   const [firstScratchedIndex, setFirstScratchedIndex] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'primary' });
+  
+  // Debug logging
+  console.log('Reply props:', {
+    reply,
+    currentUser,
+    hasCompensation: reply.hasCompensation,
+    compensations: reply.compensations
+  });
+
   const isVishu = currentUser?.name === 'Vishu';
   const isSabaa = currentUser?.name === 'Sabaa';
   const compensation = reply.compensations?.[0];
-  const canShowCompensation = isVishu && !reply.hasCompensation;
+  
+  // More specific compensation checks
+  const hasExistingCompensation = reply.compensations && reply.compensations.length > 0;
+  const canShowCompensation = isVishu && !hasExistingCompensation;
   const canRevealCompensation = isSabaa && compensation?.status === 'pending';
+
+  // Debug logging for visibility conditions
+  console.log('Compensation visibility:', {
+    isVishu,
+    isSabaa,
+    hasExistingCompensation,
+    canShowCompensation,
+    canRevealCompensation,
+    compensation
+  });
 
   const showToast = (message, type = 'primary') => {
     setToast({ show: true, message, type });
@@ -80,25 +102,43 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   };
 
   const handleCompensationClick = () => {
+    console.log('Compensation button clicked:', {
+      canShowCompensation,
+      canRevealCompensation,
+      hasExistingCompensation
+    });
+
     if (canShowCompensation) {
       setShowCompensationPopup(true);
     } else if (canRevealCompensation) {
       setShowScratchCards(true);
-    } else if (isVishu && reply.hasCompensation) {
+    } else if (isVishu && hasExistingCompensation) {
       showToast("You've already added some sweet surprises! 🎁 Let Sabaa pick one first! 💝", 'warning');
     }
   };
 
-  const handleCompensationSubmit = (options) => {
-    onAddCompensation(reply.id, options);
-    setShowCompensationPopup(false);
-    showToast('Sweet surprises added successfully! 🎁 Now wait for Sabaa to pick one! ✨', 'success');
+  const handleCompensationSubmit = async (options) => {
+    console.log('Submitting compensation:', { replyId: reply.id, options });
+    const success = await onAddCompensation(reply.id, options);
+    
+    if (success) {
+      setShowCompensationPopup(false);
+      showToast('Sweet surprises added successfully! 🎁 Now wait for Sabaa to pick one! ✨', 'success');
+    } else {
+      showToast('Oops! Could not add the surprises. Please try again! 🙈', 'warning');
+    }
   };
 
-  const handleCompensationReveal = (selectedOption) => {
-    onRevealCompensation(compensation.id, selectedOption);
-    setShowScratchCards(false);
-    showToast('Yay! You picked a sweet surprise! 🎉 Hope it makes you smile! 💖', 'success');
+  const handleCompensationReveal = async (selectedOption) => {
+    console.log('Revealing compensation:', { compensationId: compensation?.id, selectedOption });
+    const success = await onRevealCompensation(compensation.id, selectedOption);
+    
+    if (success) {
+      setShowScratchCards(false);
+      showToast('Yay! You picked a sweet surprise! 🎉 Hope it makes you smile! 💖', 'success');
+    } else {
+      showToast('Oops! Could not reveal the surprise. Please try again! 🙈', 'warning');
+    }
   };
 
   const handleCardScratched = (index) => {
@@ -108,10 +148,16 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   };
 
   const renderCompensationButton = () => {
+    console.log('Rendering compensation button:', {
+      canShowCompensation,
+      canRevealCompensation,
+      hasExistingCompensation
+    });
+
     if (canShowCompensation) {
       return (
         <button
-          onClick={() => setShowCompensationPopup(true)}
+          onClick={handleCompensationClick}
           className={`text-xs font-medium text-pink-600 hover:text-pink-700 hover:underline transition-colors`}
         >
           + Make it up to you
@@ -122,7 +168,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     if (canRevealCompensation) {
       return (
         <button
-          onClick={() => setShowScratchCards(true)}
+          onClick={handleCompensationClick}
           className={`text-xs font-medium text-pink-600 hover:text-pink-700 hover:underline transition-colors`}
         >
           🎁 Open your surprise
