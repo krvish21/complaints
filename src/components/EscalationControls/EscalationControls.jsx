@@ -2,35 +2,77 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../contexts/UserContext';
 
-const EscalationButton = ({ status, currentStatus, onClick, theme }) => {
-  const statusStyles = {
-    upheld: `bg-red-500 hover:bg-red-600`,
-    resolved: `bg-green-500 hover:bg-green-600`,
-    ok: `${theme.secondary} hover:opacity-90`
-  };
+const StatusDropdown = ({ currentStatus, onChange, theme }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-  const statusIcons = {
-    upheld: '⚠️',
-    resolved: '✅',
-    ok: '👌'
-  };
+  const statusOptions = [
+    { value: 'pending', label: 'Pending ⏳', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'upheld', label: 'Upheld ⚠️', color: 'bg-red-100 text-red-800' },
+    { value: 'resolved', label: 'Resolved ✅', color: 'bg-green-100 text-green-800' },
+    { value: 'ok', label: 'OK 👌', color: `${theme.lightBg} ${theme.text}` }
+  ];
 
-  const isActive = currentStatus === status;
+  const currentOption = statusOptions.find(opt => opt.value === currentStatus) || statusOptions[0];
 
   return (
-    <button
-      onClick={() => onClick(status)}
-      className={`
-        ${statusStyles[status]} 
-        ${isActive ? 'ring-2 ring-offset-2 ring-gray-500' : ''}
-        text-white px-4 py-2 rounded-lg shadow-md 
-        transition-all duration-200 ease-in-out
-        flex items-center gap-2 text-sm font-medium
-      `}
-    >
-      <span>{statusIcons[status]}</span>
-      <span className="capitalize">{status}</span>
-    </button>
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`
+          flex items-center justify-between gap-2 px-4 py-2 rounded-lg
+          border ${theme.border} ${theme.lightBg} ${theme.text}
+          hover:bg-gray-50 transition-colors duration-200
+          min-w-[140px]
+        `}
+      >
+        <span>{currentOption.label}</span>
+        <svg 
+          className={`w-4 h-4 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <div 
+              className="fixed inset-0 z-10" 
+              onClick={() => setIsOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute top-full left-0 mt-1 w-full z-20"
+            >
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                {statusOptions.map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      onChange(option.value);
+                      setIsOpen(false);
+                    }}
+                    className={`
+                      w-full px-4 py-2 text-left text-sm
+                      hover:bg-gray-50 transition-colors duration-200
+                      ${option.color}
+                      ${currentStatus === option.value ? 'font-medium' : ''}
+                    `}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
@@ -93,27 +135,14 @@ export const EscalationControls = ({
     onResolvePlea(pleaId, accepted ? 'accepted' : 'rejected');
   };
 
-  const renderEscalationButtons = () => {
+  const renderEscalationControls = () => {
     if (!isSabaa) return null;
 
     return (
-      <div className="flex gap-2 mt-4">
-        <EscalationButton 
-          status="upheld" 
+      <div className="flex items-center gap-2">
+        <StatusDropdown 
           currentStatus={complaint.status}
-          onClick={handleEscalate}
-          theme={theme}
-        />
-        <EscalationButton 
-          status="resolved" 
-          currentStatus={complaint.status}
-          onClick={handleEscalate}
-          theme={theme}
-        />
-        <EscalationButton 
-          status="ok" 
-          currentStatus={complaint.status}
-          onClick={handleEscalate}
+          onChange={handleEscalate}
           theme={theme}
         />
       </div>
@@ -173,7 +202,7 @@ export const EscalationControls = ({
   return (
     <div className="mt-4">
       <AnimatePresence>
-        {renderEscalationButtons()}
+        {renderEscalationControls()}
         {renderPleaControls()}
       </AnimatePresence>
     </div>

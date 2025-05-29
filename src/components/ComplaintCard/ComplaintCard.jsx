@@ -414,6 +414,7 @@ export const ComplaintCard = ({
   const [replyError, setReplyError] = useState(null);
   const theme = moodThemes[complaint.mood] || moodThemes['😊'];
   const replyCount = complaint.replies?.length || 0;
+  const { isVishu, isSabaa } = useUser();
 
   const handleSubmitReply = async (e) => {
     e.preventDefault();
@@ -424,16 +425,8 @@ export const ComplaintCard = ({
       return;
     }
 
-    console.log('Submitting reply for complaint:', {
-      complaintId: complaint.id,
-      content: replyContent,
-      currentUser
-    });
-
     try {
       const success = await onReply(complaint.id, replyContent);
-      console.log('Reply submission result:', success);
-
       if (success) {
         setReplyContent('');
         setIsReplying(false);
@@ -446,13 +439,6 @@ export const ComplaintCard = ({
       setReplyError('An unexpected error occurred. Please try again.');
     }
   };
-
-  console.log('ComplaintCard render:', {
-    complaintId: complaint.id,
-    replyCount,
-    replies: complaint.replies,
-    currentUser
-  });
 
   return (
     <motion.div
@@ -487,9 +473,9 @@ export const ComplaintCard = ({
       />
 
       {/* Replies Section */}
-      <div className={`border-t ${theme.border} bg-gray-50`}>
+      <div className={`mt-4 border-t ${theme.border} bg-gray-50`}>
         <div className="p-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-end gap-4">
             <button
               onClick={() => setShowReplies(!showReplies)}
               className={`text-xs ${theme.accent} hover:underline flex items-center gap-1`}
