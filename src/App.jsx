@@ -7,63 +7,45 @@ import { useUser } from './contexts/UserContext';
 import './App.css';
 
 const Header = () => {
-  const { user, setUser, USERS } = useUser();
-
-  const handleUserChange = (userType) => {
-    console.log('Switching to user:', userType, USERS[userType]);
-    setUser(userType);
-  };
+  const { user, setUser, isVishu, isSabaa } = useUser();
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white border-b border-gray-100 py-6 px-4 mb-8 sticky top-0 z-10 backdrop-blur-sm bg-white/80"
-    >
-      <div className="max-w-xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Love Notes 💌</h1>
-            <p className="text-sm text-gray-500 mt-1">A safe space for us</p>
+    <header className="bg-white shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-gray-900">Love Notes 💌</h1>
+          <div className="flex items-center gap-4">
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                className="form-radio text-pink-600"
+                name="user"
+                checked={isSabaa}
+                onChange={() => setUser('Sabaa')}
+              />
+              <span className="ml-2">Sabaa</span>
+            </label>
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                className="form-radio text-blue-600"
+                name="user"
+                checked={isVishu}
+                onChange={() => setUser('Vishu')}
+              />
+              <span className="ml-2">Vishu</span>
+            </label>
           </div>
         </div>
-        <div className="flex items-center gap-6">
-          <label className="inline-flex items-center">
-            <input
-              type="radio"
-              className="form-radio text-pink-500 h-4 w-4"
-              checked={user.id === USERS.SABAA.id}
-              onChange={() => handleUserChange('SABAA')}
-            />
-            <span className="ml-2 text-gray-700">Sabaa</span>
-          </label>
-          <label className="inline-flex items-center">
-            <input
-              type="radio"
-              className="form-radio text-pink-500 h-4 w-4"
-              checked={user.id === USERS.VISHU.id}
-              onChange={() => handleUserChange('VISHU')}
-            />
-            <span className="ml-2 text-gray-700">Vishu</span>
-          </label>
-          <span className="text-sm text-gray-500">
-            Acting as: <span className="font-medium text-gray-700">{user.name} (ID: {user.id})</span>
-          </span>
-        </div>
       </div>
-    </motion.header>
+    </header>
   );
 };
 
 const MainContent = ({ children }) => (
-  <motion.main
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.5 }}
-    className="max-w-xl mx-auto px-4 pb-12"
-  >
-    {children}
-  </motion.main>
+  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="space-y-6">{children}</div>
+  </main>
 );
 
 const App = () => {
