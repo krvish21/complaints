@@ -42,22 +42,61 @@ const UserBadge = ({ username, isAuthor, theme }) => (
   </span>
 );
 
+const Toast = ({ message, type = 'primary', theme }) => {
+  const styles = {
+    primary: `${theme.primary} text-white`,
+    success: 'bg-green-500 text-white',
+    warning: 'bg-yellow-500 text-white',
+    info: 'bg-blue-500 text-white'
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg
+        ${styles[type]} text-sm font-medium z-50`}
+    >
+      {message}
+    </motion.div>
+  );
+};
+
 const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensation }) => {
   const [showCompensationPopup, setShowCompensationPopup] = useState(false);
   const [showScratchCards, setShowScratchCards] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'primary' });
   const isVishu = currentUser?.name === 'Vishu';
   const isSabaa = currentUser?.name === 'Sabaa';
   const compensation = reply.compensations?.[0];
   const canShowCompensation = isVishu && !compensation;
   const canRevealCompensation = isSabaa && compensation?.status === 'pending';
 
+  const showToast = (message, type = 'primary') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'primary' }), 3000);
+  };
+
+  const handleCompensationClick = () => {
+    if (canShowCompensation) {
+      setShowCompensationPopup(true);
+    } else if (canRevealCompensation) {
+      setShowScratchCards(true);
+    } else if (isVishu && compensation) {
+      showToast("You've already added some sweet surprises! 🎁 Let Sabaa pick one first! 💝", 'warning');
+    }
+  };
+
   const handleCompensationSubmit = (options) => {
     onAddCompensation(reply.id, options);
+    showToast('Sweet surprises added successfully! 🎁 Now wait for Sabaa to pick one! ✨', 'success');
   };
 
   const handleCompensationReveal = (selectedOption) => {
     onRevealCompensation(compensation.id, selectedOption);
     setShowScratchCards(false);
+    showToast('Yay! You picked a sweet surprise! 🎉 Hope it makes you smile! 💖', 'success');
   };
 
   return (
@@ -83,12 +122,12 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
             </span>
           )}
 
-          {(canShowCompensation || canRevealCompensation) && (
+          {(canShowCompensation || canRevealCompensation || (isVishu && compensation)) && (
             <button
-              onClick={() => canShowCompensation ? setShowCompensationPopup(true) : setShowScratchCards(true)}
+              onClick={handleCompensationClick}
               className={`ml-2 text-sm font-medium text-pink-600 hover:text-pink-700 hover:underline transition-colors`}
             >
-              {canShowCompensation ? '+ Make it up to you' : '🎁 Open your surprise'}
+              {canShowCompensation ? '+ Make it up to you' : canRevealCompensation ? '🎁 Open your surprise' : '✨ Already added surprises'}
             </button>
           )}
         </div>
@@ -100,6 +139,16 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
         onSubmit={handleCompensationSubmit}
         theme={theme}
       />
+
+      <AnimatePresence>
+        {toast.show && (
+          <Toast 
+            message={toast.message}
+            type={toast.type}
+            theme={theme} 
+          />
+        )}
+      </AnimatePresence>
 
       {/* Show all options as scratch cards */}
       <AnimatePresence>
