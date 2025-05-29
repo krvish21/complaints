@@ -16,7 +16,17 @@ const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   // Initialize with Sabaa as default
-  const [user, setUser] = useState(USERS.SABAA);
+  const [user, setUserState] = useState(USERS.SABAA);
+
+  const setUser = (userType) => {
+    if (typeof userType === 'string' && USERS[userType]) {
+      setUserState(USERS[userType]);
+    } else if (userType && userType.id) {
+      setUserState(userType);
+    } else {
+      console.error('Invalid user:', userType);
+    }
+  };
 
   return (
     <UserContext.Provider value={{ user, setUser, USERS }}>

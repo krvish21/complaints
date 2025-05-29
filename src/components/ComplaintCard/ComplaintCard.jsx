@@ -77,10 +77,16 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     compensations: reply.compensations
   });
 
+  // Ensure we have valid user objects
+  if (!reply.user?.id || !currentUser?.id) {
+    console.error('Invalid user data:', { reply: reply.user, currentUser });
+    return null;
+  }
+
   // User role checks
-  const isReplyFromSabaa = reply.user?.id === '2';
-  const isVishu = currentUser?.id === '1';
-  const isSabaa = currentUser?.id === '2';
+  const isReplyFromSabaa = reply.user.id === '2';
+  const isVishu = currentUser.id === '1';
+  const isSabaa = currentUser.id === '2';
   const compensation = reply.compensations?.[0];
   
   // Compensation state checks
@@ -102,8 +108,8 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     canShowCompensation,
     canRevealCompensation,
     compensation,
-    replyUserId: reply.user?.id,
-    currentUserId: currentUser?.id
+    replyUserId: reply.user.id,
+    currentUserId: currentUser.id
   });
 
   const showToast = (message, type = 'primary') => {
@@ -116,8 +122,8 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
       canShowCompensation,
       canRevealCompensation,
       hasExistingCompensation,
-      replyUserId: reply.user?.id,
-      currentUserId: currentUser?.id
+      replyUserId: reply.user.id,
+      currentUserId: currentUser.id
     });
 
     if (!isReplyFromSabaa) {
@@ -155,8 +161,8 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     console.log('Submitting compensation:', { 
       replyId: reply.id, 
       options,
-      replyUserId: reply.user?.id,
-      currentUserId: currentUser?.id
+      replyUserId: reply.user.id,
+      currentUserId: currentUser.id
     });
     
     const success = await onAddCompensation(reply.id, options);
@@ -183,8 +189,8 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     console.log('Revealing compensation:', { 
       compensationId: compensation?.id, 
       selectedOption,
-      replyUserId: reply.user?.id,
-      currentUserId: currentUser?.id
+      replyUserId: reply.user.id,
+      currentUserId: currentUser.id
     });
 
     if (!compensation?.id) {
@@ -214,8 +220,8 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
       canShowCompensation,
       canRevealCompensation,
       hasExistingCompensation,
-      replyUserId: reply.user?.id,
-      currentUserId: currentUser?.id
+      replyUserId: reply.user.id,
+      currentUserId: currentUser.id
     });
 
     if (canShowCompensation) {
