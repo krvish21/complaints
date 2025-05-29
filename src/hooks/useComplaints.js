@@ -176,17 +176,19 @@ export const useComplaints = () => {
             }
           }));
 
-          return {
+          // Transform reply with proper user info
+          const transformedReply = {
             ...reply,
-            // Add user info for each reply
             user: reply.user_profiles || {
               id: reply.user_id,
               username: reply.user_id === '2' ? 'Vishu' : 'Sabaa'
             },
-            // Set transformed compensations
             compensations: transformedCompensations,
             hasCompensation: transformedCompensations.length > 0
           };
+
+          console.log('Transformed reply:', transformedReply);
+          return transformedReply;
         })
       };
 
@@ -244,7 +246,13 @@ export const useComplaints = () => {
     const { data, error } = await supabase
       .from('replies')
       .insert([replyData])
-      .select('*');
+      .select(`
+        *,
+        user_profiles!user_id (
+          user_id,
+          username
+        )
+      `);
 
     if (error) {
       console.error('Error adding reply:', error);

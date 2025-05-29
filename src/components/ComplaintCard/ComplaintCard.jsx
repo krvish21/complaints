@@ -71,17 +71,24 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   const [toast, setToast] = useState({ show: false, message: '', type: 'primary' });
   const { isVishu, isSabaa } = useUser();
   
-  // Debug logging
+  // Debug logging for all props
   console.log('Reply props:', {
     reply,
     currentUser,
     hasCompensation: reply.hasCompensation,
-    compensations: reply.compensations
+    compensations: reply.compensations,
+    replyUser: reply.user,
+    currentUserData: currentUser
   });
 
   // Ensure we have valid user objects
   if (!reply.user?.id || !currentUser?.user_id) {
-    console.error('Invalid user data:', { reply: reply.user, currentUser });
+    console.error('Invalid user data:', { 
+      replyUser: reply.user, 
+      currentUser,
+      replyUserId: reply.user?.id,
+      currentUserId: currentUser?.user_id
+    });
     return null;
   }
 
@@ -109,7 +116,9 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     canRevealCompensation,
     compensation,
     replyUserId: reply.user.id,
-    currentUserId: currentUser.user_id
+    currentUserId: currentUser.user_id,
+    replyUsername: reply.user.username,
+    currentUsername: currentUser.username
   });
 
   const showToast = (message, type = 'primary') => {
@@ -276,7 +285,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
           <div className="flex items-center justify-end gap-1.5 text-xs text-gray-500">
             <span>{format(new Date(reply.created_at), 'h:mm a')}</span>
             <span>•</span>
-            <span className={`font-medium ${reply.user.id === currentUser?.id ? theme.accent : 'text-gray-700'}`}>
+            <span className={`font-medium ${reply.user.id === currentUser.user_id ? theme.accent : 'text-gray-700'}`}>
               {reply.user.username}
             </span>
           </div>
