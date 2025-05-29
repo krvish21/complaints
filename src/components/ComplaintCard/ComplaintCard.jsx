@@ -66,6 +66,7 @@ const Toast = ({ message, type = 'primary', theme }) => {
 const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensation }) => {
   const [showCompensationPopup, setShowCompensationPopup] = useState(false);
   const [showScratchCards, setShowScratchCards] = useState(false);
+  const [firstScratchedIndex, setFirstScratchedIndex] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'primary' });
   const isVishu = currentUser?.name === 'Vishu';
   const isSabaa = currentUser?.name === 'Sabaa';
@@ -99,38 +100,46 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     showToast('Yay! You picked a sweet surprise! 🎉 Hope it makes you smile! 💖', 'success');
   };
 
+  const handleCardScratched = (index) => {
+    if (firstScratchedIndex === null) {
+      setFirstScratchedIndex(index);
+    }
+  };
+
   return (
     <>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex flex-col gap-1 bg-white rounded-lg p-2 shadow-sm"
+        className="flex flex-col items-end gap-1"
       >
-        <div className="flex items-center gap-1.5 text-xs text-gray-500">
-          <span className={`font-medium ${reply.user.id === currentUser?.id ? theme.accent : 'text-gray-700'}`}>
-            {reply.user.username}
-          </span>
-          <span>•</span>
-          <span>{format(new Date(reply.created_at), 'h:mm a')}</span>
-        </div>
-        
-        <div className="flex flex-col gap-1">
-          <p className="text-sm text-gray-600 break-words">{reply.content}</p>
-          
-          {compensation?.status === 'revealed' && (
-            <span className={`text-sm ${theme.accent}`}>
-              🎁 {compensation.selected_option}
+        <div className="max-w-[85%] bg-white rounded-lg p-2 shadow-sm">
+          <div className="flex items-center justify-end gap-1.5 text-xs text-gray-500">
+            <span>{format(new Date(reply.created_at), 'h:mm a')}</span>
+            <span>•</span>
+            <span className={`font-medium ${reply.user.id === currentUser?.id ? theme.accent : 'text-gray-700'}`}>
+              {reply.user.username}
             </span>
-          )}
+          </div>
+          
+          <div className="flex flex-col items-end gap-1 mt-1">
+            <p className="text-sm text-gray-600 break-words text-right">{reply.content}</p>
+            
+            {compensation?.status === 'revealed' && (
+              <span className={`text-sm ${theme.accent} text-right`}>
+                🎁 {compensation.selected_option}
+              </span>
+            )}
 
-          {(canShowCompensation || canRevealCompensation || (isVishu && compensation)) && (
-            <button
-              onClick={handleCompensationClick}
-              className={`self-start text-xs font-medium text-pink-600 hover:text-pink-700 hover:underline transition-colors`}
-            >
-              {canShowCompensation ? '+ Make it up to you' : canRevealCompensation ? '🎁 Open your surprise' : '✨ Already added surprises'}
-            </button>
-          )}
+            {(canShowCompensation || canRevealCompensation || (isVishu && compensation)) && (
+              <button
+                onClick={handleCompensationClick}
+                className={`text-xs font-medium text-pink-600 hover:text-pink-700 hover:underline transition-colors`}
+              >
+                {canShowCompensation ? '+ Make it up to you' : canRevealCompensation ? '🎁 Open your surprise' : '✨ Already added surprises'}
+              </button>
+            )}
+          </div>
         </div>
       </motion.div>
 
@@ -175,17 +184,18 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
                 {[...compensation.options]
                   .sort(() => Math.random() - 0.5)
                   .map((option, index) => (
-                  <ScratchCard
-                    key={index}
-                    isOpen={true}
-                    onClose={() => {}}
-                    options={[option]}
-                    onReveal={handleCompensationReveal}
-                    theme={theme}
-                    disabled={compensation.status === 'revealed'}
-                    firstRevealed={index === 0}
-                  />
-                ))}
+                    <ScratchCard
+                      key={index}
+                      isOpen={true}
+                      onClose={() => {}}
+                      options={[option]}
+                      onReveal={handleCompensationReveal}
+                      theme={theme}
+                      disabled={compensation.status === 'revealed'}
+                      isFirstScratched={index === firstScratchedIndex}
+                      onScratched={() => handleCardScratched(index)}
+                    />
+                  ))}
               </div>
               <div className="mt-6 text-center">
                 <button

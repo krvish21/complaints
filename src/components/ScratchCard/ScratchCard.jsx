@@ -1,7 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disabled = false, firstRevealed = false }) => {
+export const ScratchCard = ({ 
+  isOpen, 
+  onClose, 
+  options, 
+  onReveal, 
+  theme, 
+  disabled = false, 
+  isFirstScratched = false,
+  onScratched = () => {} 
+}) => {
   const [revealed, setRevealed] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
   const canvasRef = useRef(null);
@@ -57,7 +66,7 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disable
 
     const draw = (e) => {
       if (!isDrawing || disabled) return;
-      e.preventDefault(); // Prevent scrolling on mobile while scratching
+      e.preventDefault();
       
       const coords = getCoordinates(e);
       const x = coords.x;
@@ -82,6 +91,7 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disable
       if (percentage > 50 && !revealed) {
         setRevealed(true);
         setSelectedOption(option);
+        onScratched(); // Notify parent when card is scratched
       }
     };
 
@@ -114,7 +124,7 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disable
       canvas.removeEventListener('touchend', stopDrawing);
       canvas.removeEventListener('touchcancel', stopDrawing);
     };
-  }, [isOpen, disabled, option]);
+  }, [isOpen, disabled, option, onScratched]);
 
   const handleSubmit = () => {
     if (selectedOption) {
@@ -139,7 +149,7 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disable
           </div>
         </motion.div>
       )}
-      {revealed && !disabled && firstRevealed && (
+      {revealed && !disabled && isFirstScratched && (
         <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
