@@ -295,18 +295,48 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [showReplies, setShowReplies] = useState(false);
+  const [replyError, setReplyError] = useState(null);
   const theme = moodThemes[complaint.mood] || moodThemes['😊'];
   const replyCount = complaint.replies?.length || 0;
 
-  const handleSubmitReply = (e) => {
+  const handleSubmitReply = async (e) => {
     e.preventDefault();
-    if (replyContent.trim()) {
-      onReply(complaint.id, replyContent);
-      setReplyContent('');
-      setIsReplying(false);
-      setShowReplies(true);
+    setReplyError(null);
+
+    if (!replyContent.trim()) {
+      setReplyError('Please enter a reply');
+      return;
+    }
+
+    console.log('Submitting reply for complaint:', {
+      complaintId: complaint.id,
+      content: replyContent,
+      currentUser
+    });
+
+    try {
+      const success = await onReply(complaint.id, replyContent);
+      console.log('Reply submission result:', success);
+
+      if (success) {
+        setReplyContent('');
+        setIsReplying(false);
+        setShowReplies(true);
+      } else {
+        setReplyError('Failed to submit reply. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+      setReplyError('An unexpected error occurred. Please try again.');
     }
   };
+
+  console.log('ComplaintCard render:', {
+    complaintId: complaint.id,
+    replyCount,
+    replies: complaint.replies,
+    currentUser
+  });
 
   return (
     <motion.div
@@ -434,17 +464,28 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
                     onSubmit={handleSubmitReply}
                     className="mt-3 flex flex-col gap-2"
                   >
-                    <input
-                      type="text"
-                      value={replyContent}
-                      onChange={(e) => setReplyContent(e.target.value)}
-                      placeholder="Write your thoughts..."
-                      className={`w-full p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400`}
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                        placeholder="Write your thoughts..."
+                        className={`w-full p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400 ${
+                          replyError ? 'border-red-500' : ''
+                        }`}
+                      />
+                      {replyError && (
+                        <p className="text-xs text-red-500 mt-1">{replyError}</p>
+                      )}
+                    </div>
                     <div className="flex justify-end gap-2">
                       <button
                         type="button"
-                        onClick={() => setIsReplying(false)}
+                        onClick={() => {
+                          setIsReplying(false);
+                          setReplyError(null);
+                          setReplyContent('');
+                        }}
                         className="px-3 py-1 text-xs text-gray-600 hover:text-gray-800"
                       >
                         Cancel

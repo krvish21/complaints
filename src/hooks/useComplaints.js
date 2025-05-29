@@ -208,14 +208,32 @@ export const useComplaints = () => {
   };
 
   const addReply = async (complaintId, content) => {
-    const { error } = await supabase
+    console.log('Adding reply:', { complaintId, content });
+
+    const replyData = {
+      complaint_id: complaintId,
+      content,
+      user_id: '1', // Default to Vishu's ID
+      created_at: new Date().toISOString()
+    };
+
+    console.log('Submitting reply to Supabase:', replyData);
+
+    const { data, error } = await supabase
       .from('replies')
-      .insert([{ complaint_id: complaintId, content }]);
+      .insert([replyData])
+      .select('*');
 
     if (error) {
       console.error('Error adding reply:', error);
       return false;
     }
+
+    console.log('Successfully added reply:', data);
+    
+    // Fetch updated complaints immediately
+    console.log('Fetching updated complaints after reply...');
+    await fetchComplaints();
     return true;
   };
 
