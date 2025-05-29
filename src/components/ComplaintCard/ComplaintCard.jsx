@@ -77,19 +77,26 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     compensations: reply.compensations
   });
 
-  const isVishu = currentUser?.name === 'Vishu';
-  const isSabaa = currentUser?.name === 'Sabaa';
+  // Check if the reply is from Sabaa (user_id === '2')
+  const isReplyFromSabaa = reply.user.id === '2';
+  const isVishu = currentUser?.id === '1';
+  const isSabaa = currentUser?.id === '2';
   const compensation = reply.compensations?.[0];
   
   // More specific compensation checks
   const hasExistingCompensation = reply.compensations && reply.compensations.length > 0;
-  const canShowCompensation = isVishu && !hasExistingCompensation;
+  // Only show compensation button if:
+  // 1. Current user is Vishu
+  // 2. The reply is from Sabaa
+  // 3. There's no existing compensation
+  const canShowCompensation = isVishu && isReplyFromSabaa && !hasExistingCompensation;
   const canRevealCompensation = isSabaa && compensation?.status === 'pending';
 
   // Debug logging for visibility conditions
   console.log('Compensation visibility:', {
     isVishu,
     isSabaa,
+    isReplyFromSabaa,
     hasExistingCompensation,
     canShowCompensation,
     canRevealCompensation,
@@ -118,6 +125,11 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   };
 
   const handleCompensationSubmit = async (options) => {
+    if (!isVishu) {
+      showToast('Only Vishu can add compensations! 🤗', 'warning');
+      return;
+    }
+
     console.log('Submitting compensation:', { replyId: reply.id, options });
     const success = await onAddCompensation(reply.id, options);
     
@@ -130,6 +142,11 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   };
 
   const handleCompensationReveal = async (selectedOption) => {
+    if (!isSabaa) {
+      showToast('Only Sabaa can reveal compensations! 🤗', 'warning');
+      return;
+    }
+
     console.log('Revealing compensation:', { compensationId: compensation?.id, selectedOption });
     if (!compensation?.id) {
       console.error('No compensation ID found');
