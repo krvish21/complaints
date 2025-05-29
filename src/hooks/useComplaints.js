@@ -70,10 +70,27 @@ export const useComplaints = () => {
   }, []);
 
   const fetchComplaints = async () => {
-    // First, let's just get the basic complaints data
+    // Get complaints with their related data
     const { data: complaintsData, error: complaintsError } = await supabase
       .from('complaints')
-      .select('*')
+      .select(`
+        *,
+        reactions (
+          id,
+          reaction
+        ),
+        replies (
+          id,
+          content,
+          created_at,
+          compensations (
+            id,
+            status,
+            options,
+            selected_option
+          )
+        )
+      `)
       .order('created_at', { ascending: false });
 
     if (complaintsError) {
@@ -81,34 +98,38 @@ export const useComplaints = () => {
       return;
     }
 
-    // Log the basic structure to understand what we're working with
-    console.log('Basic complaints data:', complaintsData);
+    // Transform the data to include default user information
+    const transformedData = (complaintsData || []).map(complaint => ({
+      ...complaint,
+      // Add default user info for the complaint
+      user: { 
+        id: complaint.user_id || 'unknown',
+        username: complaint.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
+      },
+      // Transform reactions
+      reactions: (complaint.reactions || []).map(reaction => ({
+        ...reaction,
+        // Add default user info for each reaction
+        user: {
+          id: reaction.user_id || 'unknown',
+          username: reaction.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
+        }
+      })),
+      // Transform replies
+      replies: (complaint.replies || []).map(reply => ({
+        ...reply,
+        // Add default user info for each reply
+        user: {
+          id: reply.user_id || 'unknown',
+          username: reply.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
+        },
+        // Ensure compensations array exists
+        compensations: reply.compensations || []
+      }))
+    }));
 
-    // Now let's try to get the auth.users structure
-    const { data: usersData, error: usersError } = await supabase
-      .from('auth.users')
-      .select('*')
-      .limit(1);
-
-    if (usersError) {
-      console.error('Error fetching users:', usersError);
-    } else {
-      console.log('Users structure:', usersData);
-    }
-
-    // Let's also check what tables are available
-    const { data: tablesData, error: tablesError } = await supabase
-      .rpc('get_tables');
-
-    if (tablesError) {
-      console.error('Error fetching tables:', tablesError);
-    } else {
-      console.log('Available tables:', tablesData);
-    }
-
-    // For now, let's just set the basic complaints data
-    // Once we understand the structure, we can add the joins back
-    setComplaints(complaintsData || []);
+    console.log('Transformed complaints data:', transformedData);
+    setComplaints(transformedData);
   };
 
   const addComplaint = async (complaintData) => {
