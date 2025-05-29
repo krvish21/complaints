@@ -39,15 +39,32 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disable
       return (transparent / (imgData.data.length / 4)) * 100;
     };
 
+    const getCoordinates = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX || e.touches[0].clientX) - rect.left;
+      const y = (e.clientY || e.touches[0].clientY) - rect.top;
+      return { x, y };
+    };
+
+    const startDrawing = (e) => {
+      if (!disabled) {
+        isDrawing = true;
+        const coords = getCoordinates(e);
+        lastX = coords.x;
+        lastY = coords.y;
+      }
+    };
+
     const draw = (e) => {
       if (!isDrawing || disabled) return;
+      e.preventDefault(); // Prevent scrolling on mobile while scratching
       
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const coords = getCoordinates(e);
+      const x = coords.x;
+      const y = coords.y;
 
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = 30; // Smaller scratch width
+      ctx.lineWidth = 30;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(lastX, lastY);
@@ -68,25 +85,36 @@ export const ScratchCard = ({ isOpen, onClose, options, onReveal, theme, disable
       }
     };
 
-    canvas.addEventListener('mousedown', (e) => {
-      if (!disabled) {
-        isDrawing = true;
-        const rect = canvas.getBoundingClientRect();
-        lastX = e.clientX - rect.left;
-        lastY = e.clientY - rect.top;
-      }
-    });
+    const stopDrawing = () => {
+      isDrawing = false;
+    };
+
+    // Mouse Events
+    canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', () => isDrawing = false);
-    canvas.addEventListener('mouseleave', () => isDrawing = false);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+
+    // Touch Events
+    canvas.addEventListener('touchstart', startDrawing, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDrawing);
+    canvas.addEventListener('touchcancel', stopDrawing);
 
     return () => {
-      canvas.removeEventListener('mousedown', () => {});
+      // Cleanup Mouse Events
+      canvas.removeEventListener('mousedown', startDrawing);
       canvas.removeEventListener('mousemove', draw);
-      canvas.removeEventListener('mouseup', () => {});
-      canvas.removeEventListener('mouseleave', () => {});
+      canvas.removeEventListener('mouseup', stopDrawing);
+      canvas.removeEventListener('mouseleave', stopDrawing);
+
+      // Cleanup Touch Events
+      canvas.removeEventListener('touchstart', startDrawing);
+      canvas.removeEventListener('touchmove', draw);
+      canvas.removeEventListener('touchend', stopDrawing);
+      canvas.removeEventListener('touchcancel', stopDrawing);
     };
-  }, [isOpen, disabled]);
+  }, [isOpen, disabled, option]);
 
   const handleSubmit = () => {
     if (selectedOption) {

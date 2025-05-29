@@ -215,50 +215,44 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
       onReply(complaint.id, replyContent);
       setReplyContent('');
       setIsReplying(false);
-      setShowReplies(true); // Show replies after posting
+      setShowReplies(true);
     }
   };
 
   return (
     <motion.div
-      className={`rounded-2xl shadow-lg border ${theme.border} p-6 hover:shadow-xl transition-shadow bg-gradient-to-br ${theme.gradient} bg-opacity-5`}
+      className={`rounded-2xl shadow-lg border ${theme.border} overflow-hidden bg-white`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <h3 className={`text-xl font-semibold ${theme.accent} mb-2 flex items-center gap-2`}>
-            {complaint.mood} {complaint.title}
-          </h3>
-          <div className="flex items-center gap-3 flex-wrap">
-            <UserBadge 
-              username={complaint.user.username} 
-              isAuthor={complaint.user.id === currentUser?.id}
-              theme={theme}
-            />
-            <span className="text-xs text-gray-400">
-              {format(new Date(complaint.created_at), 'MMM d, yyyy • h:mm a')}
-            </span>
+      {/* Header Section */}
+      <div className={`p-4 border-b ${theme.border} bg-gradient-to-br ${theme.gradient} bg-opacity-5`}>
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{complaint.mood}</span>
+            <h3 className={`text-lg font-semibold ${theme.accent}`}>
+              {complaint.title}
+            </h3>
           </div>
+          <div className="flex items-center gap-2">
+            <SeverityBadge severity={complaint.severity} theme={theme} />
+            <CategoryBadge category={complaint.category} theme={theme} />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <UserBadge username={complaint.user.username} isAuthor={complaint.user.id === currentUser?.id} theme={theme} />
+          <span>•</span>
+          <span>{format(new Date(complaint.created_at), 'MMM d, yyyy • h:mm a')}</span>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="mb-4">
-        <p className={`${theme.text} whitespace-pre-wrap`}>{complaint.description}</p>
-      </div>
+      {/* Content Section */}
+      <div className="p-6">
+        <p className={`${theme.text} whitespace-pre-wrap mb-6`}>{complaint.description}</p>
 
-      {/* Tags */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <SeverityBadge severity={complaint.severity} theme={theme} />
-        <CategoryBadge category={complaint.category} theme={theme} />
-      </div>
-
-      {/* Reactions and Reply Button */}
-      <div className={`flex items-center gap-4 pt-4 border-t ${theme.border}`}>
-        <div className="relative">
+        {/* Reactions Section */}
+        <div className="flex items-center gap-4">
           <select
             className={`appearance-none ${theme.lightBg} ${theme.hover} transition-colors rounded-full px-4 py-1.5 pr-8 text-sm cursor-pointer focus:outline-none focus:ring-2 ring-offset-2 ${theme.border}`}
             value={complaint.userReaction || ''}
@@ -269,104 +263,116 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
               <option key={m} value={m}>{m}</option>
             ))}
           </select>
-          <div className={`pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 ${theme.accent}`}>
-            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-              <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-            </svg>
-          </div>
-        </div>
-        <div className="flex gap-1">
-          {complaint.reactions?.map((r, index) => (
-            <motion.span
-              key={index}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              title={r.user.username}
-              className="text-2xl"
-            >
-              {r.reaction}
-            </motion.span>
-          ))}
-        </div>
-        <div className="flex-1 flex items-center justify-end gap-4">
-          {replyCount > 0 && (
-            <button
-              onClick={() => setShowReplies(!showReplies)}
-              className={`text-sm ${theme.accent} hover:underline flex items-center gap-1`}
-            >
-              {replyCount} {replyCount === 1 ? 'thought' : 'thoughts'}
-              <svg
-                className={`w-4 h-4 transform transition-transform ${showReplies ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          <div className="flex gap-1">
+            {complaint.reactions?.map((r, index) => (
+              <motion.span
+                key={index}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                title={r.user.username}
+                className="text-2xl"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          )}
-          <button
-            onClick={() => setIsReplying(!isReplying)}
-            className={`text-sm ${theme.accent} hover:underline flex items-center gap-1`}
-          >
-            {isReplying ? 'Cancel' : 'Reply'}
-          </button>
+                {r.reaction}
+              </motion.span>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Replies Section */}
-      <AnimatePresence>
-        {(showReplies || isReplying) && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            {/* Existing Replies */}
-            {showReplies && complaint.replies?.length > 0 && (
-              <div className={`mt-4 space-y-1.5 pt-3 border-t ${theme.border}`}>
-                {complaint.replies.map((reply) => (
-                  <Reply
-                    key={reply.id}
-                    reply={reply}
-                    currentUser={currentUser}
-                    theme={theme}
-                    onAddCompensation={onAddCompensation}
-                    onRevealCompensation={onRevealCompensation}
-                  />
-                ))}
-              </div>
-            )}
-            
-            {/* Reply Form */}
-            {isReplying && (
-              <motion.form
-                onSubmit={handleSubmitReply}
-                className={`mt-4 flex gap-2 items-center pt-3 ${showReplies ? '' : `border-t ${theme.border}`}`}
+      <div className={`border-t ${theme.border} bg-gray-50`}>
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setShowReplies(!showReplies)}
+              className={`text-sm ${theme.accent} hover:underline flex items-center gap-1`}
+            >
+              {replyCount > 0 ? (
+                <>
+                  {replyCount} {replyCount === 1 ? 'thought' : 'thoughts'}
+                  <svg
+                    className={`w-4 h-4 transform transition-transform ${showReplies ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </>
+              ) : (
+                'Share your thoughts'
+              )}
+            </button>
+            {!isReplying && (
+              <button
+                onClick={() => setIsReplying(true)}
+                className={`text-sm ${theme.accent} hover:underline`}
               >
-                <div className="flex-1 flex justify-end">
-                  <input
-                    type="text"
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    placeholder="Write a reply..."
-                    className={`w-[85%] p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400`}
-                  />
-                </div>
-                <motion.button
-                  type="submit"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`px-4 py-2 ${theme.primary} text-white rounded-lg text-sm shadow-md`}
-                >
-                  Send
-                </motion.button>
-              </motion.form>
+                Reply
+              </button>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+
+          <AnimatePresence>
+            {(showReplies || isReplying) && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                {/* Existing Replies */}
+                {showReplies && complaint.replies?.length > 0 && (
+                  <div className="mt-4 space-y-3">
+                    {complaint.replies.map((reply) => (
+                      <Reply
+                        key={reply.id}
+                        reply={reply}
+                        currentUser={currentUser}
+                        theme={theme}
+                        onAddCompensation={onAddCompensation}
+                        onRevealCompensation={onRevealCompensation}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Reply Form */}
+                {isReplying && (
+                  <motion.form
+                    onSubmit={handleSubmitReply}
+                    className="mt-4 flex gap-2"
+                  >
+                    <input
+                      type="text"
+                      value={replyContent}
+                      onChange={(e) => setReplyContent(e.target.value)}
+                      placeholder="Write your thoughts..."
+                      className={`flex-1 p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400`}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsReplying(false)}
+                        className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={!replyContent.trim()}
+                        className={`px-3 py-1 ${theme.primary} text-white rounded-lg text-sm shadow-sm disabled:opacity-50`}
+                      >
+                        Send
+                      </button>
+                    </div>
+                  </motion.form>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </motion.div>
   );
 };
