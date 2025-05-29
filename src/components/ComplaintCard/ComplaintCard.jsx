@@ -230,20 +230,22 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
       {/* Header Section */}
       <div className={`p-3 border-b ${theme.border} bg-gradient-to-br ${theme.gradient} bg-opacity-5`}>
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{complaint.mood}</span>
-            <h3 className={`text-base font-semibold ${theme.accent} flex-1`}>
-              {complaint.title}
-            </h3>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xl shrink-0">{complaint.mood}</span>
+              <h3 className={`text-base font-semibold ${theme.accent} break-words`}>
+                {complaint.title}
+              </h3>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <SeverityBadge severity={complaint.severity} theme={theme} />
+              <CategoryBadge category={complaint.category} theme={theme} />
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
             <UserBadge username={complaint.user.username} isAuthor={complaint.user.id === currentUser?.id} theme={theme} />
             <span>•</span>
             <span>{format(new Date(complaint.created_at), 'MMM d • h:mm a')}</span>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <SeverityBadge severity={complaint.severity} theme={theme} />
-            <CategoryBadge category={complaint.category} theme={theme} />
           </div>
         </div>
       </div>
