@@ -86,7 +86,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
           {(canShowCompensation || canRevealCompensation) && (
             <button
               onClick={() => canShowCompensation ? setShowCompensationPopup(true) : setShowScratchCards(true)}
-              className={`ml-2 text-sm ${theme.accent} hover:underline transition-colors`}
+              className={`ml-2 text-sm font-medium text-pink-600 hover:text-pink-700 hover:underline transition-colors`}
             >
               {canShowCompensation ? '+ Make it up to you' : '🎁 Open your surprise'}
             </button>
