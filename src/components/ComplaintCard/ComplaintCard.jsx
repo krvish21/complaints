@@ -21,14 +21,14 @@ const SeverityBadge = ({ severity, theme }) => {
   };
 
   return (
-    <span className={`px-3 py-1 rounded-full text-sm ${severityColors[severity] || severityColors.low}`}>
+    <span className={`px-2 py-0.5 rounded-full text-xs ${severityColors[severity] || severityColors.low}`}>
       {labels[severity] || 'Just saying'}
     </span>
   );
 };
 
 const CategoryBadge = ({ category, theme }) => (
-  <span className={`px-3 py-1 rounded-full text-sm font-medium ${theme.lightBg} ${theme.text} border ${theme.border}`}>
+  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${theme.lightBg} ${theme.text} border ${theme.border}`}>
     {category}
   </span>
 );
@@ -104,20 +104,21 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex items-center justify-end gap-2 text-sm group"
+        className="flex flex-col gap-1 bg-white rounded-lg p-2 shadow-sm"
       >
-        <div className={`flex items-center gap-2 max-w-[85%] ${theme.text}`}>
-          <span className="text-xs text-gray-400 group-hover:opacity-100 opacity-50">
-            {format(new Date(reply.created_at), 'h:mm a')}
-          </span>
-          <span className="mx-1 text-gray-300">•</span>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
           <span className={`font-medium ${reply.user.id === currentUser?.id ? theme.accent : 'text-gray-700'}`}>
-            {reply.user.username}:
+            {reply.user.username}
           </span>
-          <span className="text-gray-600 break-words">{reply.content}</span>
+          <span>•</span>
+          <span>{format(new Date(reply.created_at), 'h:mm a')}</span>
+        </div>
+        
+        <div className="flex flex-col gap-1">
+          <p className="text-sm text-gray-600 break-words">{reply.content}</p>
           
           {compensation?.status === 'revealed' && (
-            <span className={`ml-2 ${theme.accent}`}>
+            <span className={`text-sm ${theme.accent}`}>
               🎁 {compensation.selected_option}
             </span>
           )}
@@ -125,7 +126,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
           {(canShowCompensation || canRevealCompensation || (isVishu && compensation)) && (
             <button
               onClick={handleCompensationClick}
-              className={`ml-2 text-sm font-medium text-pink-600 hover:text-pink-700 hover:underline transition-colors`}
+              className={`self-start text-xs font-medium text-pink-600 hover:text-pink-700 hover:underline transition-colors`}
             >
               {canShowCompensation ? '+ Make it up to you' : canRevealCompensation ? '🎁 Open your surprise' : '✨ Already added surprises'}
             </button>
@@ -221,40 +222,40 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
 
   return (
     <motion.div
-      className={`rounded-2xl shadow-lg border ${theme.border} overflow-hidden bg-white`}
+      className={`rounded-xl shadow-lg border ${theme.border} overflow-hidden bg-white`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
       {/* Header Section */}
-      <div className={`p-4 border-b ${theme.border} bg-gradient-to-br ${theme.gradient} bg-opacity-5`}>
-        <div className="flex items-start justify-between mb-3">
+      <div className={`p-3 border-b ${theme.border} bg-gradient-to-br ${theme.gradient} bg-opacity-5`}>
+        <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">{complaint.mood}</span>
-            <h3 className={`text-lg font-semibold ${theme.accent}`}>
+            <span className="text-xl">{complaint.mood}</span>
+            <h3 className={`text-base font-semibold ${theme.accent} flex-1`}>
               {complaint.title}
             </h3>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+            <UserBadge username={complaint.user.username} isAuthor={complaint.user.id === currentUser?.id} theme={theme} />
+            <span>•</span>
+            <span>{format(new Date(complaint.created_at), 'MMM d • h:mm a')}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
             <SeverityBadge severity={complaint.severity} theme={theme} />
             <CategoryBadge category={complaint.category} theme={theme} />
           </div>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <UserBadge username={complaint.user.username} isAuthor={complaint.user.id === currentUser?.id} theme={theme} />
-          <span>•</span>
-          <span>{format(new Date(complaint.created_at), 'MMM d, yyyy • h:mm a')}</span>
-        </div>
       </div>
 
       {/* Content Section */}
-      <div className="p-6">
-        <p className={`${theme.text} whitespace-pre-wrap mb-6`}>{complaint.description}</p>
+      <div className="p-3">
+        <p className={`${theme.text} text-sm whitespace-pre-wrap mb-4`}>{complaint.description}</p>
 
         {/* Reactions Section */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <select
-            className={`appearance-none ${theme.lightBg} ${theme.hover} transition-colors rounded-full px-4 py-1.5 pr-8 text-sm cursor-pointer focus:outline-none focus:ring-2 ring-offset-2 ${theme.border}`}
+            className={`appearance-none ${theme.lightBg} ${theme.hover} transition-colors rounded-full px-3 py-1 text-xs cursor-pointer focus:outline-none focus:ring-2 ring-offset-2 ${theme.border}`}
             value={complaint.userReaction || ''}
             onChange={(e) => onReact(complaint.id, e.target.value)}
           >
@@ -263,14 +264,14 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
               <option key={m} value={m}>{m}</option>
             ))}
           </select>
-          <div className="flex gap-1">
+          <div className="flex gap-0.5">
             {complaint.reactions?.map((r, index) => (
               <motion.span
                 key={index}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 title={r.user.username}
-                className="text-2xl"
+                className="text-lg"
               >
                 {r.reaction}
               </motion.span>
@@ -281,17 +282,17 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
 
       {/* Replies Section */}
       <div className={`border-t ${theme.border} bg-gray-50`}>
-        <div className="p-4">
+        <div className="p-3">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setShowReplies(!showReplies)}
-              className={`text-sm ${theme.accent} hover:underline flex items-center gap-1`}
+              className={`text-xs ${theme.accent} hover:underline flex items-center gap-1`}
             >
               {replyCount > 0 ? (
                 <>
                   {replyCount} {replyCount === 1 ? 'thought' : 'thoughts'}
                   <svg
-                    className={`w-4 h-4 transform transition-transform ${showReplies ? 'rotate-180' : ''}`}
+                    className={`w-3 h-3 transform transition-transform ${showReplies ? 'rotate-180' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -306,7 +307,7 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
             {!isReplying && (
               <button
                 onClick={() => setIsReplying(true)}
-                className={`text-sm ${theme.accent} hover:underline`}
+                className={`text-xs ${theme.accent} hover:underline`}
               >
                 Reply
               </button>
@@ -323,7 +324,7 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
               >
                 {/* Existing Replies */}
                 {showReplies && complaint.replies?.length > 0 && (
-                  <div className="mt-4 space-y-3">
+                  <div className="mt-3 space-y-2">
                     {complaint.replies.map((reply) => (
                       <Reply
                         key={reply.id}
@@ -341,27 +342,27 @@ export const ComplaintCard = ({ complaint, onReply, onReact, onAddCompensation, 
                 {isReplying && (
                   <motion.form
                     onSubmit={handleSubmitReply}
-                    className="mt-4 flex gap-2"
+                    className="mt-3 flex flex-col gap-2"
                   >
                     <input
                       type="text"
                       value={replyContent}
                       onChange={(e) => setReplyContent(e.target.value)}
                       placeholder="Write your thoughts..."
-                      className={`flex-1 p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400`}
+                      className={`w-full p-2 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400`}
                     />
-                    <div className="flex gap-2">
+                    <div className="flex justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => setIsReplying(false)}
-                        className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                        className="px-3 py-1 text-xs text-gray-600 hover:text-gray-800"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={!replyContent.trim()}
-                        className={`px-3 py-1 ${theme.primary} text-white rounded-lg text-sm shadow-sm disabled:opacity-50`}
+                        className={`px-3 py-1 ${theme.primary} text-white rounded-lg text-xs shadow-sm disabled:opacity-50`}
                       >
                         Send
                       </button>
