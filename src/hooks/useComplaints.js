@@ -123,7 +123,7 @@ export const useComplaints = () => {
         // Add default user info for the complaint
         user: { 
           id: complaint.user_id || 'unknown',
-          username: complaint.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
+          username: complaint.user_id === '2' ? 'Sabaa' : 'Vishu'
         },
         // Transform reactions
         reactions: (complaint.reactions || []).map(reaction => ({
@@ -131,21 +131,35 @@ export const useComplaints = () => {
           // Add default user info for each reaction
           user: {
             id: reaction.user_id || 'unknown',
-            username: reaction.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
+            username: reaction.user_id === '2' ? 'Sabaa' : 'Vishu'
           }
         })),
         // Transform replies
-        replies: (complaint.replies || []).map(reply => ({
-          ...reply,
-          // Add default user info for each reply
-          user: {
-            id: reply.user_id || 'unknown',
-            username: reply.user_id === 'sabaa' ? 'Sabaa' : 'Vishu'
-          },
-          // Ensure compensations array exists and check if any compensations exist
-          compensations: reply.compensations || [],
-          hasCompensation: (reply.compensations || []).length > 0
-        }))
+        replies: (complaint.replies || []).map(reply => {
+          // Ensure compensations is an array and properly transformed
+          const compensations = Array.isArray(reply.compensations) ? reply.compensations : 
+            (reply.compensations ? [reply.compensations] : []);
+
+          // Transform each compensation
+          const transformedCompensations = compensations.map(comp => ({
+            ...comp,
+            options: Array.isArray(comp.options) ? comp.options : [],
+            status: comp.status || 'pending',
+            selected_option: comp.selected_option || null
+          }));
+
+          return {
+            ...reply,
+            // Add default user info for each reply
+            user: {
+              id: reply.user_id || 'unknown',
+              username: reply.user_id === '2' ? 'Sabaa' : 'Vishu'
+            },
+            // Set transformed compensations
+            compensations: transformedCompensations,
+            hasCompensation: transformedCompensations.length > 0
+          };
+        })
       };
 
       console.log('Transformed complaint:', transformedComplaint);

@@ -131,6 +131,12 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
 
   const handleCompensationReveal = async (selectedOption) => {
     console.log('Revealing compensation:', { compensationId: compensation?.id, selectedOption });
+    if (!compensation?.id) {
+      console.error('No compensation ID found');
+      showToast('Oops! Something went wrong. Please try again! 🙈', 'warning');
+      return;
+    }
+
     const success = await onRevealCompensation(compensation.id, selectedOption);
     
     if (success) {
@@ -173,6 +179,14 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
         >
           🎁 Open your surprise
         </button>
+      );
+    }
+
+    if (isVishu && hasExistingCompensation) {
+      return (
+        <span className={`text-xs font-medium text-gray-500`}>
+          Waiting for Sabaa to pick a surprise 🎁
+        </span>
       );
     }
 
@@ -247,21 +261,19 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
                 Pick your surprise! 🎁
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                {[...compensation.options]
-                  .sort(() => Math.random() - 0.5)
-                  .map((option, index) => (
-                    <ScratchCard
-                      key={index}
-                      isOpen={true}
-                      onClose={() => {}}
-                      options={[option]}
-                      onReveal={handleCompensationReveal}
-                      theme={theme}
-                      disabled={compensation.status === 'revealed'}
-                      isFirstScratched={index === firstScratchedIndex}
-                      onScratched={() => handleCardScratched(index)}
-                    />
-                  ))}
+                {compensation.options.map((option, index) => (
+                  <ScratchCard
+                    key={index}
+                    isOpen={true}
+                    onClose={() => {}}
+                    options={[option]}
+                    onReveal={handleCompensationReveal}
+                    theme={theme}
+                    disabled={compensation.status === 'revealed'}
+                    isFirstScratched={index === firstScratchedIndex}
+                    onScratched={() => handleCardScratched(index)}
+                  />
+                ))}
               </div>
               <div className="mt-6 text-center">
                 <button
