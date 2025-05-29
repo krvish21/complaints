@@ -279,42 +279,55 @@ export const useComplaints = () => {
 
   const addCompensation = async (replyId, options) => {
     console.log('Adding compensation for reply:', replyId, 'with options:', options);
-    console.log('Current user for compensation:', currentUser);
     
     try {
-      // Check if a compensation already exists for this reply
+      // First verify the current user is Vishu
+      if (currentUser.id !== '1') {
+        console.error('Only Vishu can add compensations');
+        return false;
+      }
+
+      // Then verify the reply is from Sabaa
+      const { data: replyData, error: replyError } = await supabase
+        .from('replies')
+        .select('user_id')
+        .eq('id', replyId)
+        .single();
+
+      if (replyError) {
+        console.error('Error fetching reply:', replyError);
+        return false;
+      }
+
+      if (replyData.user_id !== '2') {
+        console.error('Can only add compensations to Sabaa\'s replies');
+        return false;
+      }
+
+      // Check if a compensation already exists
       const { data: existingCompensations, error: checkError } = await supabase
         .from('compensations')
-        .select('id, reply_id')
+        .select('id')
         .eq('reply_id', replyId);
-
-      console.log('Existing compensations check:', existingCompensations);
 
       if (checkError) {
         console.error('Error checking existing compensations:', checkError);
         return false;
       }
 
-      // If compensations already exist, don't add a new one
-      if (existingCompensations && existingCompensations.length > 0) {
-        console.error('Compensation already exists for this reply:', existingCompensations);
-        return false;
-      }
-
-      // Verify current user is Vishu
-      if (currentUser.id !== '1') {
-        console.error('Only Vishu can add compensations');
+      if (existingCompensations?.length > 0) {
+        console.error('Compensation already exists for this reply');
         return false;
       }
 
       // Add the new compensation
       const { data: newCompensation, error: insertError } = await supabase
         .from('compensations')
-        .insert([{ 
-          reply_id: replyId, 
-          options,
+        .insert([{
+          reply_id: replyId,
+          options: options,
           status: 'pending',
-          user_id: '1' // Explicitly set to Vishu's ID
+          user_id: currentUser.id
         }])
         .select();
 
@@ -324,10 +337,9 @@ export const useComplaints = () => {
       }
 
       console.log('Successfully added compensation:', newCompensation);
-
-      // Trigger a refresh of the complaints data
       await fetchComplaints();
       return true;
+
     } catch (error) {
       console.error('Unexpected error in addCompensation:', error);
       return false;
