@@ -70,58 +70,35 @@ export const useComplaints = () => {
   }, []);
 
   const fetchComplaints = async () => {
-    // First, let's get the basic structure to debug
-    const { data, error } = await supabase
+    // First, let's just get the basic complaints data
+    const { data: complaintsData, error: complaintsError } = await supabase
       .from('complaints')
-      .select(`
-        *,
-        profiles:user_id(id, username),
-        reactions(
-          id,
-          reaction,
-          user_id,
-          profiles:user_id(id, username)
-        ),
-        replies(
-          id,
-          content,
-          created_at,
-          user_id,
-          profiles:user_id(id, username),
-          compensations(
-            id,
-            status,
-            options,
-            selected_option
-          )
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching complaints:', error);
+    if (complaintsError) {
+      console.error('Error fetching complaints:', complaintsError);
       return;
     }
 
-    // Debug log to see the actual data structure
-    console.log('Fetched complaints data:', data);
+    // Log the basic structure to understand what we're working with
+    console.log('Basic complaints data:', complaintsData);
 
-    // Transform the data to handle potential null values
-    const transformedData = (data || []).map(complaint => ({
-      ...complaint,
-      user: complaint.profiles || { id: null, username: 'Unknown' },
-      reactions: (complaint.reactions || []).map(reaction => ({
-        ...reaction,
-        user: reaction.profiles || { id: null, username: 'Unknown' }
-      })),
-      replies: (complaint.replies || []).map(reply => ({
-        ...reply,
-        user: reply.profiles || { id: null, username: 'Unknown' },
-        compensations: reply.compensations || []
-      }))
-    }));
+    // Now let's try to get the profiles structure
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('*')
+      .limit(1);
 
-    setComplaints(transformedData);
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+    } else {
+      console.log('Profile structure:', profilesData);
+    }
+
+    // For now, let's just set the basic complaints data
+    // Once we understand the structure, we can add the joins back
+    setComplaints(complaintsData || []);
   };
 
   const addComplaint = async (complaintData) => {
