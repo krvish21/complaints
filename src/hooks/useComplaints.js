@@ -84,16 +84,26 @@ export const useComplaints = () => {
     // Log the basic structure to understand what we're working with
     console.log('Basic complaints data:', complaintsData);
 
-    // Now let's try to get the profiles structure
-    const { data: profilesData, error: profilesError } = await supabase
-      .from('profiles')
+    // Now let's try to get the auth.users structure
+    const { data: usersData, error: usersError } = await supabase
+      .from('auth.users')
       .select('*')
       .limit(1);
 
-    if (profilesError) {
-      console.error('Error fetching profiles:', profilesError);
+    if (usersError) {
+      console.error('Error fetching users:', usersError);
     } else {
-      console.log('Profile structure:', profilesData);
+      console.log('Users structure:', usersData);
+    }
+
+    // Let's also check what tables are available
+    const { data: tablesData, error: tablesError } = await supabase
+      .rpc('get_tables');
+
+    if (tablesError) {
+      console.error('Error fetching tables:', tablesError);
+    } else {
+      console.log('Available tables:', tablesData);
     }
 
     // For now, let's just set the basic complaints data
