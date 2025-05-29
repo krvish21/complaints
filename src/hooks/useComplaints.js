@@ -279,6 +279,8 @@ export const useComplaints = () => {
 
   const addCompensation = async (replyId, options) => {
     console.log('Adding compensation for reply:', replyId, 'with options:', options);
+    console.log('Current user for compensation:', currentUser);
+    
     try {
       // Check if a compensation already exists for this reply
       const { data: existingCompensations, error: checkError } = await supabase
@@ -299,6 +301,12 @@ export const useComplaints = () => {
         return false;
       }
 
+      // Verify current user is Vishu
+      if (currentUser.id !== '1') {
+        console.error('Only Vishu can add compensations');
+        return false;
+      }
+
       // Add the new compensation
       const { data: newCompensation, error: insertError } = await supabase
         .from('compensations')
@@ -306,7 +314,7 @@ export const useComplaints = () => {
           reply_id: replyId, 
           options,
           status: 'pending',
-          user_id: currentUser.id
+          user_id: '1' // Explicitly set to Vishu's ID
         }])
         .select();
 
