@@ -1,142 +1,189 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '../contexts/UserContext';
-import {
-  getComplaints,
-  createComplaint,
-  addReply as dbAddReply,
-  addReaction as dbAddReaction,
-  addCompensation as dbAddCompensation,
-  revealCompensation as dbRevealCompensation,
-  subscribeToComplaints
-} from '../lib/database';
+import { supabase } from '../lib/supabaseClient';
 
 export const useComplaints = () => {
   const [complaints, setComplaints] = useState([]);
-  const { user } = useUser();
-
-  const loadComplaints = async () => {
-    try {
-      const data = await getComplaints();
-      setComplaints(data || []);
-    } catch (error) {
-      console.error('Error loading complaints:', error);
-    }
-  };
 
   useEffect(() => {
-    loadComplaints();
+    // Fetch initial data
+    fetchComplaints();
 
-    // Subscribe to realtime changes
-    const unsubscribe = subscribeToComplaints(loadComplaints);
+    // Set up real-time subscriptions
+    const complaintsSubscription = supabase
+      .channel('complaints-channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'complaints'
+        },
+        () => fetchComplaints()
+      )
+      .subscribe();
+
+    const repliesSubscription = supabase
+      .channel('replies-channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'replies'
+        },
+        () => fetchComplaints()
+      )
+      .subscribe();
+
+    const reactionsSubscription = supabase
+      .channel('reactions-channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reactions'
+        },
+        () => fetchComplaints()
+      )
+      .subscribe();
+
+    const compensationsSubscription = supabase
+      .channel('compensations-channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'compensations'
+        },
+        () => fetchComplaints()
+      )
+      .subscribe();
 
     return () => {
-      unsubscribe();
+      complaintsSubscription.unsubscribe();
+      repliesSubscription.unsubscribe();
+      reactionsSubscription.unsubscribe();
+      compensationsSubscription.unsubscribe();
     };
   }, []);
 
-  const addComplaint = async (newComplaint) => {
-    try {
-      const data = await createComplaint({
-        ...newComplaint,
-        user_id: user.id
-      });
-      // Update local state immediately for better UX
-      setComplaints(prevComplaints => [data, ...prevComplaints]);
-      return data;
-    } catch (error) {
-      console.error('Error adding complaint:', error);
-      throw error;
+  const fetchComplaints = async () => {
+    const { data, error } = await supabase
+      .from('complaints')
+      .select(`
+        *,
+        user:users(id, username),
+        reactions(
+          id,
+          reaction,
+          user:users(id, username)
+        ),
+        replies(
+          id,
+          content,
+          created_at,
+          user:users(id, username),
+          compensations(
+            id,
+            status,
+            options,
+            selected_option
+          )
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching complaints:', error);
+      return;
     }
+
+    setComplaints(data || []);
+  };
+
+  const addComplaint = async (complaintData) => {
+    const { error } = await supabase
+      .from('complaints')
+      .insert([complaintData]);
+
+    if (error) {
+      console.error('Error adding complaint:', error);
+      return false;
+    }
+    return true;
   };
 
   const addReply = async (complaintId, content) => {
-    try {
-      const newReply = await dbAddReply(complaintId, content, user.id);
-      
-      // Update local state immediately for better UX
-      setComplaints(prevComplaints => prevComplaints.map(complaint => {
-        if (complaint.id === complaintId) {
-          return {
-            ...complaint,
-            replies: [...(complaint.replies || []), newReply]
-          };
-        }
-        return complaint;
-      }));
-    } catch (error) {
+    const { error } = await supabase
+      .from('replies')
+      .insert([{ complaint_id: complaintId, content }]);
+
+    if (error) {
       console.error('Error adding reply:', error);
-      throw error;
+      return false;
     }
+    return true;
   };
 
   const updateReaction = async (complaintId, reaction) => {
-    try {
-      if (!reaction) {
-        return;
+    if (!reaction) {
+      const { error } = await supabase
+        .from('reactions')
+        .delete()
+        .match({ complaint_id: complaintId });
+
+      if (error) {
+        console.error('Error removing reaction:', error);
+        return false;
       }
-      const newReaction = await dbAddReaction(complaintId, reaction, user.id);
-      
-      // Update local state immediately for better UX
-      setComplaints(prevComplaints => prevComplaints.map(complaint => {
-        if (complaint.id === complaintId) {
-          // Remove existing reaction from this user if it exists
-          const filteredReactions = (complaint.reactions || [])
-            .filter(r => r.user_id !== user.id);
-          
-          return {
-            ...complaint,
-            reactions: [...filteredReactions, newReaction]
-          };
-        }
-        return complaint;
-      }));
-    } catch (error) {
-      console.error('Error updating reaction:', error);
-      throw error;
+    } else {
+      const { error } = await supabase
+        .from('reactions')
+        .upsert(
+          { complaint_id: complaintId, reaction },
+          { onConflict: 'complaint_id' }
+        );
+
+      if (error) {
+        console.error('Error updating reaction:', error);
+        return false;
+      }
     }
+    return true;
   };
 
   const addCompensation = async (replyId, options) => {
-    try {
-      const newCompensation = await dbAddCompensation(replyId, options, user.id);
-      
-      // Update local state immediately for better UX
-      setComplaints(prevComplaints => prevComplaints.map(complaint => ({
-        ...complaint,
-        replies: complaint.replies?.map(reply => {
-          if (reply.id === replyId) {
-            return {
-              ...reply,
-              compensations: [...(reply.compensations || []), newCompensation]
-            };
-          }
-          return reply;
-        })
-      })));
-    } catch (error) {
+    const { error } = await supabase
+      .from('compensations')
+      .insert([{ 
+        reply_id: replyId, 
+        options,
+        status: 'pending'
+      }]);
+
+    if (error) {
       console.error('Error adding compensation:', error);
-      throw error;
+      return false;
     }
+    return true;
   };
 
   const revealCompensation = async (compensationId, selectedOption) => {
-    try {
-      const updatedCompensation = await dbRevealCompensation(compensationId, selectedOption, user.id);
-      
-      // Update local state immediately for better UX
-      setComplaints(prevComplaints => prevComplaints.map(complaint => ({
-        ...complaint,
-        replies: complaint.replies?.map(reply => ({
-          ...reply,
-          compensations: reply.compensations?.map(comp =>
-            comp.id === compensationId ? updatedCompensation : comp
-          )
-        }))
-      })));
-    } catch (error) {
+    const { error } = await supabase
+      .from('compensations')
+      .update({ 
+        status: 'revealed',
+        selected_option: selectedOption
+      })
+      .eq('id', compensationId);
+
+    if (error) {
       console.error('Error revealing compensation:', error);
-      throw error;
+      return false;
     }
+    return true;
   };
 
   return {
@@ -145,6 +192,6 @@ export const useComplaints = () => {
     addReply,
     updateReaction,
     addCompensation,
-    revealCompensation,
+    revealCompensation
   };
 }; 

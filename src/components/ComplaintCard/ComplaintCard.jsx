@@ -106,6 +106,32 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
     }
   };
 
+  const renderCompensationButton = () => {
+    if (canShowCompensation) {
+      return (
+        <button
+          onClick={() => setShowCompensationPopup(true)}
+          className={`text-xs font-medium text-pink-600 hover:text-pink-700 hover:underline transition-colors`}
+        >
+          + Make it up to you
+        </button>
+      );
+    }
+    
+    if (canRevealCompensation) {
+      return (
+        <button
+          onClick={() => setShowScratchCards(true)}
+          className={`text-xs font-medium text-pink-600 hover:text-pink-700 hover:underline transition-colors`}
+        >
+          🎁 Open your surprise
+        </button>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <>
       <motion.div
@@ -131,14 +157,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
               </span>
             )}
 
-            {(canShowCompensation || canRevealCompensation || (isVishu && compensation)) && (
-              <button
-                onClick={handleCompensationClick}
-                className={`text-xs font-medium text-pink-600 hover:text-pink-700 hover:underline transition-colors`}
-              >
-                {canShowCompensation ? '+ Make it up to you' : canRevealCompensation ? '🎁 Open your surprise' : '✨ Already added surprises'}
-              </button>
-            )}
+            {renderCompensationButton()}
           </div>
         </div>
       </motion.div>
