@@ -70,21 +70,24 @@ export const useComplaints = () => {
   }, []);
 
   const fetchComplaints = async () => {
+    // First, let's get the basic structure to debug
     const { data, error } = await supabase
       .from('complaints')
       .select(`
         *,
-        user_profiles!complaints_user_id_fkey(user_id, username),
+        profiles:user_id(id, username),
         reactions(
           id,
           reaction,
-          user_profiles!reactions_user_id_fkey(user_id, username)
+          user_id,
+          profiles:user_id(id, username)
         ),
         replies(
           id,
           content,
           created_at,
-          user_profiles!replies_user_id_fkey(user_id, username),
+          user_id,
+          profiles:user_id(id, username),
           compensations(
             id,
             status,
@@ -100,7 +103,25 @@ export const useComplaints = () => {
       return;
     }
 
-    setComplaints(data || []);
+    // Debug log to see the actual data structure
+    console.log('Fetched complaints data:', data);
+
+    // Transform the data to handle potential null values
+    const transformedData = (data || []).map(complaint => ({
+      ...complaint,
+      user: complaint.profiles || { id: null, username: 'Unknown' },
+      reactions: (complaint.reactions || []).map(reaction => ({
+        ...reaction,
+        user: reaction.profiles || { id: null, username: 'Unknown' }
+      })),
+      replies: (complaint.replies || []).map(reply => ({
+        ...reply,
+        user: reply.profiles || { id: null, username: 'Unknown' },
+        compensations: reply.compensations || []
+      }))
+    }));
+
+    setComplaints(transformedData);
   };
 
   const addComplaint = async (complaintData) => {
