@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../contexts/UserContext';
 
-const StatusDropdown = ({ currentStatus, onChange, theme }) => {
+export const StatusDropdown = ({ currentStatus, onChange, theme }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const statusOptions = [

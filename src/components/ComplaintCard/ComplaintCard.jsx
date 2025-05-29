@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { moodThemes } from '../../lib/themes';
 import { CompensationPopup } from '../CompensationPopup/CompensationPopup';
 import { ScratchCard } from '../ScratchCard/ScratchCard';
-import { EscalationControls } from '../EscalationControls/EscalationControls';
+import { EscalationControls, StatusDropdown } from '../EscalationControls/EscalationControls';
 import { useUser } from '../../contexts/UserContext';
 
 export const moods = ['😊', '😢', '😡', '🥺', '💔', '😤', '🙄', '😒'];
