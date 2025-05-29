@@ -71,7 +71,7 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
   const isVishu = currentUser?.name === 'Vishu';
   const isSabaa = currentUser?.name === 'Sabaa';
   const compensation = reply.compensations?.[0];
-  const canShowCompensation = isVishu && !compensation;
+  const canShowCompensation = isVishu && !reply.hasCompensation;
   const canRevealCompensation = isSabaa && compensation?.status === 'pending';
 
   const showToast = (message, type = 'primary') => {
@@ -84,13 +84,14 @@ const Reply = ({ reply, currentUser, theme, onAddCompensation, onRevealCompensat
       setShowCompensationPopup(true);
     } else if (canRevealCompensation) {
       setShowScratchCards(true);
-    } else if (isVishu && compensation) {
+    } else if (isVishu && reply.hasCompensation) {
       showToast("You've already added some sweet surprises! 🎁 Let Sabaa pick one first! 💝", 'warning');
     }
   };
 
   const handleCompensationSubmit = (options) => {
     onAddCompensation(reply.id, options);
+    setShowCompensationPopup(false);
     showToast('Sweet surprises added successfully! 🎁 Now wait for Sabaa to pick one! ✨', 'success');
   };
 
