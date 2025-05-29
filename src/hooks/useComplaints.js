@@ -116,8 +116,15 @@ export const useComplaints = () => {
 
     console.log('Raw complaints data:', complaintsData);
 
+    if (!complaintsData || complaintsData.length === 0) {
+      console.log('No complaints found in database');
+      setComplaints([]);
+      return;
+    }
+
     // Transform the data to include default user information
-    const transformedData = (complaintsData || []).map(complaint => {
+    const transformedData = complaintsData.map(complaint => {
+      console.log('Processing complaint:', complaint);
       const transformedComplaint = {
         ...complaint,
         // Add default user info for the complaint
@@ -180,14 +187,23 @@ export const useComplaints = () => {
       created_at: new Date().toISOString()
     };
 
-    const { error } = await supabase
+    console.log('Submitting to Supabase:', complaintWithUser);
+
+    const { data, error } = await supabase
       .from('complaints')
-      .insert([complaintWithUser]);
+      .insert([complaintWithUser])
+      .select('*'); // Add select() to return the inserted data
 
     if (error) {
       console.error('Error adding complaint:', error);
       return false;
     }
+
+    console.log('Successfully added complaint:', data);
+    
+    // Fetch updated complaints immediately
+    console.log('Fetching updated complaints...');
+    await fetchComplaints();
     return true;
   };
 

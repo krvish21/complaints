@@ -17,11 +17,11 @@ export const ComplaintForm = ({ onSubmit }) => {
   const [severity, setSeverity] = useState('low');
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !description) return;
 
-    onSubmit({
+    console.log('Submitting complaint:', {
       title,
       description,
       mood,
@@ -30,12 +30,25 @@ export const ComplaintForm = ({ onSubmit }) => {
       created_at: new Date().toISOString()
     });
 
-    setTitle('');
-    setDescription('');
-    setMood(moods[0]);
-    setCategory(categories[0]);
-    setSeverity('low');
-    setIsExpanded(false);
+    const success = await onSubmit({
+      title,
+      description,
+      mood,
+      category,
+      severity,
+      created_at: new Date().toISOString()
+    });
+
+    console.log('Submission result:', success);
+
+    if (success) {
+      setTitle('');
+      setDescription('');
+      setMood(moods[0]);
+      setCategory(categories[0]);
+      setSeverity('low');
+      setIsExpanded(false);
+    }
   };
 
   return (
