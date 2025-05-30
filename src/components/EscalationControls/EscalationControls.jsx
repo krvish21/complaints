@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../contexts/UserContext';
 
@@ -14,14 +14,14 @@ export const StatusDropdown = ({ currentStatus, onChange, theme }) => {
   const currentOption = statusOptions.find(opt => opt.value === currentStatus) || statusOptions[0];
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block w-[140px]">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
           flex items-center justify-between gap-2 px-3 py-1.5 rounded-full text-xs
           border ${theme.border} ${theme.lightBg} ${theme.text}
           hover:bg-gray-50 transition-colors duration-200
-          min-w-[110px]
+          w-full
         `}
       >
         <span>{currentOption.label}</span>
@@ -39,16 +39,17 @@ export const StatusDropdown = ({ currentStatus, onChange, theme }) => {
         {isOpen && (
           <>
             <div 
-              className="fixed inset-0 z-10" 
+              className="fixed inset-0" 
               onClick={() => setIsOpen(false)}
             />
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute top-full right-0 mt-1 min-w-[110px] w-max z-50"
+              className="absolute top-full left-0 mt-1 w-full"
+              style={{ isolation: 'isolate', zIndex: 9999 }}
             >
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 py-1 whitespace-nowrap">
+              <div className="bg-white rounded-lg shadow-xl border border-gray-200 py-1">
                 {statusOptions.map(option => (
                   <button
                     key={option.value}

@@ -412,9 +412,15 @@ export const ComplaintCard = ({
   const [replyContent, setReplyContent] = useState('');
   const [showReplies, setShowReplies] = useState(false);
   const [replyError, setReplyError] = useState(null);
+  const [showActions, setShowActions] = useState(false);
   const theme = moodThemes[complaint.mood] || moodThemes['😊'];
   const replyCount = complaint.replies?.length || 0;
   const { isVishu, isSabaa } = useUser();
+
+  const handleEscalate = (status) => {
+    onEscalate(complaint.id, status);
+    setShowActions(false);
+  };
 
   const handleSubmitReply = async (e) => {
     e.preventDefault();
@@ -456,6 +462,7 @@ export const ComplaintCard = ({
           <div className="flex flex-wrap items-center gap-2">
             <CategoryBadge category={complaint.category} theme={theme} />
             <SeverityBadge severity={complaint.severity} theme={theme} />
+            <StatusBadge status={complaint.status} theme={theme} />
           </div>
         </div>
 
@@ -473,23 +480,64 @@ export const ComplaintCard = ({
         </div>
 
         {/* Metadata */}
-        <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <span className={`text-xs ${theme.text} opacity-75`}>
-            {format(new Date(complaint.created_at), 'MMM d, yyyy • h:mm a')}
-          </span>
-          <StatusBadge status={complaint.status} theme={theme} />
+        <div className="mt-4 space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span className={`text-xs ${theme.text} opacity-75`}>
+              {format(new Date(complaint.created_at), 'MMM d, yyyy • h:mm a')}
+            </span>
+            {isSabaa && (
+              <button
+                onClick={() => setShowActions(!showActions)}
+                className={`text-sm ${theme.accent} hover:underline flex items-center gap-1.5`}
+              >
+                Action
+                <svg
+                  className={`w-4 h-4 transform transition-transform ${showActions ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+          
+          <AnimatePresence>
+            {showActions && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  <button
+                    onClick={() => handleEscalate('ok')}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium border ${theme.border} hover:bg-gray-50 transition-colors duration-200 flex flex-col items-center gap-1`}
+                  >
+                    <span className="text-base">👌</span>
+                    <span>Mark as OK</span>
+                  </button>
+                  <button
+                    onClick={() => handleEscalate('upheld')}
+                    className="px-3 py-2 rounded-lg text-xs font-medium border border-red-200 bg-red-50 text-red-800 hover:bg-red-100 transition-colors duration-200 flex flex-col items-center gap-1"
+                  >
+                    <span className="text-base">⚠️</span>
+                    <span>Uphold</span>
+                  </button>
+                  <button
+                    onClick={() => handleEscalate('resolved')}
+                    className="px-3 py-2 rounded-lg text-xs font-medium border border-green-200 bg-green-50 text-green-800 hover:bg-green-100 transition-colors duration-200 flex flex-col items-center gap-1"
+                  >
+                    <span className="text-base">✅</span>
+                    <span>Resolved</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
-
-      {/* Pleas Section */}
-      <div className={`px-4 sm:px-6 border-t ${theme.border} bg-white/10`}>
-        <EscalationControls
-          complaint={complaint}
-          onEscalate={onEscalate}
-          onCreatePlea={onCreatePlea}
-          onResolvePlea={onResolvePlea}
-          theme={theme}
-        />
       </div>
 
       {/* Replies Section */}
@@ -526,15 +574,6 @@ export const ComplaintCard = ({
                 </button>
               )}
             </div>
-            {isSabaa && (
-              <div className="w-full sm:w-auto">
-                <StatusDropdown 
-                  currentStatus={complaint.status}
-                  onChange={(status) => onEscalate(complaint.id, status)}
-                  theme={theme}
-                />
-              </div>
-            )}
           </div>
 
           <AnimatePresence>
@@ -558,6 +597,19 @@ export const ComplaintCard = ({
                         onRevealCompensation={onRevealCompensation}
                       />
                     ))}
+                  </div>
+                )}
+
+                {/* Plea Section - Show when complaint is upheld */}
+                {complaint.status === 'upheld' && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <EscalationControls
+                      complaint={complaint}
+                      onEscalate={onEscalate}
+                      onCreatePlea={onCreatePlea}
+                      onResolvePlea={onResolvePlea}
+                      theme={theme}
+                    />
                   </div>
                 )}
 
