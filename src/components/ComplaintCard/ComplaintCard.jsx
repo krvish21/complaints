@@ -462,12 +462,12 @@ export const ComplaintCard = ({
         {/* Content */}
         <div className="mt-6 space-y-2">
           {/* Title */}
-          <h3 className={`text-base sm:text-lg font-medium ${theme.accent}`}>
+          <h3 className={`text-sm sm:text-base font-medium ${theme.accent} text-left`}>
             {complaint.title || 'Untitled'}
           </h3>
 
           {/* Description */}
-          <p className={`text-sm leading-relaxed ${theme.text} opacity-90`}>
+          <p className={`text-sm leading-relaxed ${theme.text} opacity-90 text-left`}>
             {complaint.description}
           </p>
         </div>
