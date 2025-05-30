@@ -444,10 +444,10 @@ export const ComplaintCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-xl shadow-lg mb-4 overflow-hidden bg-white`}
+      className={`rounded-xl shadow-lg mb-4 overflow-hidden ${theme.bg} border ${theme.border}`}
     >
       {/* Header */}
-      <div className={`px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 ${theme.bg}`}>
+      <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <UserBadge username={complaint.user.username} isAuthor theme={theme} />
@@ -458,23 +458,23 @@ export const ComplaintCard = ({
             <SeverityBadge severity={complaint.severity} theme={theme} />
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="px-4 sm:px-6 py-4">
-        {/* Title */}
-        <h3 className={`text-lg sm:text-xl font-semibold ${theme.accent} mb-2`}>
-          {complaint.title || 'Untitled'}
-        </h3>
+        {/* Content */}
+        <div className="mt-6 space-y-2">
+          {/* Title */}
+          <h3 className={`text-base sm:text-lg font-medium ${theme.accent}`}>
+            {complaint.title || 'Untitled'}
+          </h3>
 
-        {/* Description */}
-        <p className={`text-sm sm:text-base text-gray-600 leading-relaxed mb-3`}>
-          {complaint.description}
-        </p>
-        
+          {/* Description */}
+          <p className={`text-sm leading-relaxed ${theme.text} opacity-90`}>
+            {complaint.description}
+          </p>
+        </div>
+
         {/* Metadata */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
-          <span className="text-gray-500">
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <span className={`text-xs ${theme.text} opacity-75`}>
             {format(new Date(complaint.created_at), 'MMM d, yyyy • h:mm a')}
           </span>
           <StatusBadge status={complaint.status} theme={theme} />
@@ -482,7 +482,7 @@ export const ComplaintCard = ({
       </div>
 
       {/* Pleas Section */}
-      <div className="px-4 sm:px-6 border-t border-gray-100">
+      <div className={`px-4 sm:px-6 border-t ${theme.border} bg-white/10`}>
         <EscalationControls
           complaint={complaint}
           onEscalate={onEscalate}
@@ -493,7 +493,7 @@ export const ComplaintCard = ({
       </div>
 
       {/* Replies Section */}
-      <div className={`border-t ${theme.border} bg-gray-50/80`}>
+      <div className={`border-t ${theme.border} bg-white/20`}>
         <div className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-4">
@@ -573,7 +573,7 @@ export const ComplaintCard = ({
                         value={replyContent}
                         onChange={(e) => setReplyContent(e.target.value)}
                         placeholder="Write your thoughts..."
-                        className={`w-full p-3 text-sm border rounded-lg ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400 ${
+                        className={`w-full p-3 text-sm border rounded-lg bg-white/50 ${theme.border} focus:outline-none focus:ring-2 ring-offset-2 ${theme.text} placeholder-gray-400 ${
                           replyError ? 'border-red-500' : ''
                         }`}
                       />
@@ -589,7 +589,7 @@ export const ComplaintCard = ({
                           setReplyError(null);
                           setReplyContent('');
                         }}
-                        className="w-full sm:w-auto px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg"
+                        className={`w-full sm:w-auto px-4 py-2 text-sm bg-white/50 ${theme.text} hover:bg-white/70 border ${theme.border} rounded-lg`}
                       >
                         Cancel
                       </button>
