@@ -12,15 +12,20 @@ export class ComplaintService {
     return this.#transformComplaintsData(complaints);
   }
 
-  static async createComplaint(content, userId) {
-    const complaintData = {
-      content,
+  static async createComplaint(complaintData, userId) {
+    const complaint = {
+      title: complaintData.title,
+      description: complaintData.description,
+      mood: complaintData.mood,
+      category: complaintData.category,
+      severity: complaintData.severity,
       user_id: userId,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      status: 'pending'
     };
     
-    const complaint = await ComplaintsRepository.create(complaintData);
-    return this.#transformComplaintData(complaint);
+    const result = await ComplaintsRepository.create(complaint);
+    return this.#transformComplaintData(result);
   }
 
   static async addReply(complaintId, content, userId) {
