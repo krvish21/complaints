@@ -444,38 +444,45 @@ export const ComplaintCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-xl shadow-lg mb-4 overflow-hidden ${theme.bg}`}
+      className={`rounded-xl shadow-lg mb-4 overflow-hidden bg-white`}
     >
       {/* Header */}
-      <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
+      <div className={`px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 ${theme.bg}`}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <UserBadge username={complaint.user.username} isAuthor theme={theme} />
-            <span className="text-2xl">{complaint.mood}</span>
+            <span className="text-xl">{complaint.mood}</span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <CategoryBadge category={complaint.category} theme={theme} />
             <SeverityBadge severity={complaint.severity} theme={theme} />
           </div>
         </div>
+      </div>
 
-        {/* Content */}
-        <div className="mt-4 space-y-4">
-          <p className={`text-base sm:text-lg ${theme.text} leading-relaxed`}>
-            {complaint.description}
-          </p>
-          
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
-            <span className="text-gray-500">
-              {format(new Date(complaint.created_at), 'MMM d, yyyy • h:mm a')}
-            </span>
-            <StatusBadge status={complaint.status} theme={theme} />
-          </div>
+      {/* Content */}
+      <div className="px-4 sm:px-6 py-4">
+        {/* Title */}
+        <h3 className={`text-lg sm:text-xl font-semibold ${theme.accent} mb-2`}>
+          {complaint.title || 'Untitled'}
+        </h3>
+
+        {/* Description */}
+        <p className={`text-sm sm:text-base text-gray-600 leading-relaxed mb-3`}>
+          {complaint.description}
+        </p>
+        
+        {/* Metadata */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
+          <span className="text-gray-500">
+            {format(new Date(complaint.created_at), 'MMM d, yyyy • h:mm a')}
+          </span>
+          <StatusBadge status={complaint.status} theme={theme} />
         </div>
       </div>
 
       {/* Pleas Section */}
-      <div className="px-4 sm:px-6">
+      <div className="px-4 sm:px-6 border-t border-gray-100">
         <EscalationControls
           complaint={complaint}
           onEscalate={onEscalate}
@@ -486,7 +493,7 @@ export const ComplaintCard = ({
       </div>
 
       {/* Replies Section */}
-      <div className={`mt-4 border-t ${theme.border} bg-gray-50/80`}>
+      <div className={`border-t ${theme.border} bg-gray-50/80`}>
         <div className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-4">
