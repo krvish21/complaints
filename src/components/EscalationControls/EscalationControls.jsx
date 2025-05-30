@@ -46,9 +46,9 @@ export const StatusDropdown = ({ currentStatus, onChange, theme }) => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute top-full left-0 mt-1 w-full z-50"
+              className="absolute top-full right-0 mt-1 min-w-[110px] w-max z-50"
             >
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 py-1 whitespace-nowrap">
                 {statusOptions.map(option => (
                   <button
                     key={option.value}
